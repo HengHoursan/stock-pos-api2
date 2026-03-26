@@ -9,19 +9,24 @@ export const seedRoles = async (dataSource: DataSource) => {
   const rolePermissionRepo = dataSource.getRepository(RolePermission);
 
   const roles = [
-    { name: 'Super Admin' },
-    { name: 'Admin' },
-    { name: 'User' },
+    { name: 'superadmin', displayName: 'Super Admin' },
+    { name: 'admin', displayName: 'Administrator' },
+    { name: 'user', displayName: 'Regular User' },
   ];
 
   for (const r of roles) {
     let role = await roleRepo.findOne({ where: { name: r.name } });
     if (!role) {
       role = await roleRepo.save(roleRepo.create(r));
+    } else {
+      // Update display name if it changed
+      role.displayName = r.displayName;
+      role.name = r.name;
+      await roleRepo.save(role);
     }
 
     // Assign all permissions to Super Admin
-    if (role.name === 'Super Admin') {
+    if (role.name === 'superadmin') {
       const allPermissions = await permissionRepo.find();
       for (const p of allPermissions) {
         const rolePermissionExists = await rolePermissionRepo.findOne({

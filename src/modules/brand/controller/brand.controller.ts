@@ -9,7 +9,11 @@ import {
   UpdateBrandStatusRequest,
   BrandResponse,
 } from '@/brand/dto';
-import { ApiResponse, PaginationRequest, PaginationResponse } from '@/common/dto';
+import {
+  ApiResponse,
+  PaginationRequest,
+  PaginationResponse,
+} from '@/common/dto';
 
 @Controller('brands')
 export class BrandController {
@@ -21,15 +25,12 @@ export class BrandController {
     @Body() dto: CreateBrandRequest,
     @CurrentUser('id') userId: number,
   ) {
-    const brand = await this.brandService.create(dto, userId);
-    return ApiResponse.success(
-      plainToInstance(BrandResponse, brand),
-      'Brand created successfully',
-    );
+    await this.brandService.create(dto, userId);
+    return ApiResponse.success(null, 'Brand created successfully');
   }
 
   @Post('all')
-  @Permissions('brand:view')
+  @Permissions('brand:all')
   async all() {
     const brands = await this.brandService.findAll();
     return ApiResponse.success(
@@ -39,7 +40,7 @@ export class BrandController {
   }
 
   @Post('list')
-  @Permissions('brand:view')
+  @Permissions('brand:all')
   async list(@Body() pagination: PaginationRequest) {
     const [data, meta] =
       await this.brandService.findAllWithPagination(pagination);
@@ -65,15 +66,12 @@ export class BrandController {
     @Body() dto: UpdateBrandRequest,
     @CurrentUser('id') userId: number,
   ) {
-    const brand = await this.brandService.update(dto, userId);
-    return ApiResponse.success(
-      plainToInstance(BrandResponse, brand),
-      'Brand updated successfully',
-    );
+    await this.brandService.update(dto, userId);
+    return ApiResponse.success(null, 'Brand updated successfully');
   }
 
   @Post('status-update')
-  @Permissions('brand:status-update')
+  @Permissions('brand:update')
   async updateStatus(
     @Body() dto: UpdateBrandStatusRequest,
     @CurrentUser('id') userId: number,

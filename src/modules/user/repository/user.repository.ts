@@ -16,16 +16,20 @@ export class UserRepository extends Repository<User> {
   }
 
   async findByUsernameWithPermissions(username: string): Promise<User | null> {
-    return this.findOne({
-      where: { username },
-      relations: ['role', 'role.rolePermissions', 'role.rolePermissions.permission'],
-    });
+    return this.createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .leftJoinAndSelect('role.rolePermissions', 'rp')
+      .leftJoinAndSelect('rp.permission', 'permission')
+      .where('user.username = :username', { username })
+      .getOne();
   }
 
   async findByEmailWithPermissions(email: string): Promise<User | null> {
-    return this.findOne({
-      where: { email },
-      relations: ['role', 'role.rolePermissions', 'role.rolePermissions.permission'],
-    });
+    return this.createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .leftJoinAndSelect('role.rolePermissions', 'rp')
+      .leftJoinAndSelect('rp.permission', 'permission')
+      .where('user.email = :email', { email })
+      .getOne();
   }
 }

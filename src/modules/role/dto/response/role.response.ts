@@ -9,5 +9,5 @@ export class RoleResponse {
   name: string;
 
   @Expose()
-  displayName?: string;
+  displayName: string;
 }

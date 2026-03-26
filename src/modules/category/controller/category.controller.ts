@@ -3,8 +3,17 @@ import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from '@/common/security/decorator/current-user.decorator';
 import { Permissions } from '@/common/security/decorator/permissions.decorator';
 import { CategoryService } from '@/category/service/category.service';
-import { CreateCategoryRequest, UpdateCategoryRequest, UpdateCategoryStatusRequest, CategoryResponse } from '@/category/dto';
-import { PaginationRequest, ApiResponse, PaginationResponse } from '@/common/dto';
+import {
+  CreateCategoryRequest,
+  UpdateCategoryRequest,
+  UpdateCategoryStatusRequest,
+  CategoryResponse,
+} from '@/category/dto';
+import {
+  PaginationRequest,
+  ApiResponse,
+  PaginationResponse,
+} from '@/common/dto';
 
 @Controller('categories')
 export class CategoryController {
@@ -16,15 +25,12 @@ export class CategoryController {
     @Body() dto: CreateCategoryRequest,
     @CurrentUser('id') userId: number,
   ) {
-    const category = await this.categoryService.create(dto, userId);
-    return ApiResponse.success(
-      plainToInstance(CategoryResponse, category),
-      'Category created successfully',
-    );
+    await this.categoryService.create(dto, userId);
+    return ApiResponse.success(null, 'Category created successfully');
   }
 
   @Post('all')
-  @Permissions('category:view')
+  @Permissions('category:all')
   async all() {
     const categories = await this.categoryService.findAll();
     return ApiResponse.success(
@@ -34,7 +40,7 @@ export class CategoryController {
   }
 
   @Post('list')
-  @Permissions('category:view')
+  @Permissions('category:all')
   async list(@Body() pagination: PaginationRequest) {
     const [data, meta] =
       await this.categoryService.findAllWithPagination(pagination);
@@ -60,15 +66,12 @@ export class CategoryController {
     @Body() dto: UpdateCategoryRequest,
     @CurrentUser('id') userId: number,
   ) {
-    const category = await this.categoryService.update(dto, userId);
-    return ApiResponse.success(
-      plainToInstance(CategoryResponse, category),
-      'Category updated successfully',
-    );
+    await this.categoryService.update(dto, userId);
+    return ApiResponse.success(null, 'Category updated successfully');
   }
 
   @Post('status-update')
-  @Permissions('category:status-update')
+  @Permissions('category:update')
   async updateStatus(
     @Body() dto: UpdateCategoryStatusRequest,
     @CurrentUser('id') userId: number,

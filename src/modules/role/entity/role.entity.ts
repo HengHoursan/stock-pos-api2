@@ -1,5 +1,5 @@
 import { Entity, Column, OneToMany } from 'typeorm';
-import { BaseEntity, SoftDeleteEntity } from '../../../common/entity/base.entity';
+import { SoftDeleteEntity } from '../../../common/entity/base.entity';
 import { User } from '../../user/entity/user.entity';
 import { RolePermission } from '../../role_permission/entity/role_permission.entity';
 
@@ -7,6 +7,9 @@ import { RolePermission } from '../../role_permission/entity/role_permission.ent
 export class Role extends SoftDeleteEntity {
   @Column({ unique: true })
   name: string;
+  
+  @Column({ name: 'display_name', nullable: true })
+  displayName: string;
 
   @OneToMany(() => User, (user) => user.role)
   users: User[];

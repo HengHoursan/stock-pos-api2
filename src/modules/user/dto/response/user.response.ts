@@ -1,4 +1,5 @@
-import { Expose, Exclude } from 'class-transformer';
+import { RoleResponse } from '@/role/dto';
+import { Expose, Exclude, Type } from 'class-transformer';
 
 @Exclude()
 export class UserResponse {
@@ -12,5 +13,6 @@ export class UserResponse {
   email: string;
 
   @Expose()
-  roleId?: number;
+  @Type(() => RoleResponse)
+  role: RoleResponse;
 }
