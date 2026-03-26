@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty} from 'class-validator';
 
 export class UploadImageRequest {
   @ApiProperty({
     type: 'string',
     format: 'binary',
-    description: 'Upload image (PNG, JPG, JPEG, WEBP, max 5MB)',
   })
+  @IsNotEmpty()
   image: Express.Multer.File;
 }

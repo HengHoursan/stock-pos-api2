@@ -8,10 +8,14 @@ import { CreateCategoryRequest, UpdateCategoryRequest, UpdateCategoryStatusReque
 import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { Category } from '@/category/entity/category.entity';
 import { generateCode, slugify } from '@/common/util/helper';
+import { CloudinaryService } from '@/cloudinary/service/cloudinary.service';
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly categoryRepository: CategoryRepository) {}
+  constructor(
+    private readonly categoryRepository: CategoryRepository,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   async create(
     dto: CreateCategoryRequest,
@@ -121,6 +125,22 @@ export class CategoryService {
   }
 
   async forceDelete(id: number): Promise<void> {
+    const category = await this.findOne(id);
+
+    // Delete image from Cloudinary if it exists
+    if (category.imageUrl) {
+      try {
+        const parts = category.imageUrl.split('/');
+        const filenameWithExtension = parts.pop();
+        const publicId = filenameWithExtension?.split('.')[0];
+        const fullPublicId = `pos-uploads/${publicId}`; // Folder is hardcoded for now or we could store it
+        
+        await this.cloudinaryService.deleteImage(fullPublicId);
+      } catch (error) {
+        console.error('Failed to delete Category image from Cloudinary:', error);
+      }
+    }
+
     const result = await this.categoryRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`Category with id ${id} not found`);

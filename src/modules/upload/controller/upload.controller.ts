@@ -6,21 +6,25 @@ import {
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiBody } from '@nestjs/swagger';
-import { Permissions } from '@/common/security/decorator/permissions.decorator';
+import { ApiConsumes, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { CloudinaryService } from '@/cloudinary/service/cloudinary.service';
 import { ApiResponse } from '@/common/dto';
-import { UploadResponse, UploadImageRequest } from '@/upload/dto';
+import {
+  UploadResponse,
+  UploadImageRequest,
+  UpdateImageRequest,
+} from '@/upload/dto';
 import { plainToInstance } from 'class-transformer';
 
 @Controller('upload')
 export class UploadController {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  @Post('image')
-  @Permissions('upload:image')
+  @Post('create')
+  @ApiOperation({ summary: 'Upload a new image' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Image file to upload',
@@ -40,8 +44,45 @@ export class UploadController {
   ) {
     const uploaded = await this.cloudinaryService.uploadImage(file);
     const responseDto = plainToInstance(UploadResponse, {
-      imageUrl: (uploaded as any).secure_url,
+      image_url: (uploaded as any).secure_url,
     });
     return ApiResponse.success(responseDto, 'Image uploaded successfully');
+  }
+
+  @Post('update')
+  @ApiOperation({ summary: 'Update an existing image and delete the old one' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'New image file and old image URL',
+    type: UpdateImageRequest,
+  })
+  @UseInterceptors(FileInterceptor('new_image'))
+  async updateImage(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: 'image/(png|jpeg|jpg|webp)' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+    @Body() dto: UpdateImageRequest,
+  ) {
+    const parts = dto.old_image_url.split('/');
+    const filenameWithExtension = parts.pop();
+    const publicId = filenameWithExtension?.split('.')[0];
+    const folderPath = 'pos-uploads';
+    const fullPublicId = `${folderPath}/${publicId}`;
+
+    const uploaded = await this.cloudinaryService.updateImage(
+      file,
+      fullPublicId,
+    );
+
+    const responseDto = plainToInstance(UploadResponse, {
+      image_url: (uploaded as any).secure_url,
+    });
+    return ApiResponse.success(responseDto, 'Image updated successfully');
   }
 }

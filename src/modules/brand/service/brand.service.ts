@@ -12,10 +12,14 @@ import {
 import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { Brand } from '@/brand/entity/brand.entity';
 import { generateCode, slugify } from '@/common/util/helper';
+import { CloudinaryService } from '@/cloudinary/service/cloudinary.service';
 
 @Injectable()
 export class BrandService {
-  constructor(private readonly brandRepository: BrandRepository) {}
+  constructor(
+    private readonly brandRepository: BrandRepository,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   async create(
     dto: CreateBrandRequest,
@@ -127,6 +131,22 @@ export class BrandService {
   }
 
   async forceDelete(id: number): Promise<void> {
+    const brand = await this.findOne(id);
+
+    // Delete image from Cloudinary if it exists
+    if (brand.imageUrl) {
+      try {
+        const parts = brand.imageUrl.split('/');
+        const filenameWithExtension = parts.pop();
+        const publicId = filenameWithExtension?.split('.')[0];
+        const fullPublicId = `pos-uploads/${publicId}`;
+        
+        await this.cloudinaryService.deleteImage(fullPublicId);
+      } catch (error) {
+        console.error('Failed to delete Brand image from Cloudinary:', error);
+      }
+    }
+
     const result = await this.brandRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`Brand with id ${id} not found`);
