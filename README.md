@@ -6,7 +6,6 @@ A modularized, feature-driven POS (Point of Sale) API built with NestJS, TypeORM
 
 - **Modular Architecture:** Highly structured feature modules (Auth, Brand, Category, etc.) to ensure a clean separation of concerns and easy horizontal scaling.
 - **RBAC (Role-Based Access Control):** A robust security layer with custom `@Permissions()` guards and `@CurrentUser()` decorators for fine-grained user permission tracking.
-- **Advanced File Upload:** Centralized image management using **Cloudinary** with custom validation pipes and interceptors for secure and efficient media handling.
 - **Standardized DTO Pattern:** Unified request and response formats across the entire project, utilizing barrel exports for clean and maintainable imports.
 - **Path Aliasing:** Full support for `@/` aliases to eliminate "dot-dot" hell in import statements.
 
