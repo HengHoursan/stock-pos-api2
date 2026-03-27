@@ -24,7 +24,6 @@ export class UploadController {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
   @Post('create')
-  @ApiOperation({ summary: 'Upload a new image' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Image file to upload',
@@ -50,7 +49,6 @@ export class UploadController {
   }
 
   @Post('update')
-  @ApiOperation({ summary: 'Update an existing image and delete the old one' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'New image file and old image URL',

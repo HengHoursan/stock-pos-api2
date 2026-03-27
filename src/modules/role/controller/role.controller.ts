@@ -1,10 +1,14 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { CurrentUser } from '@/common/security/decorator/current-user.decorator';
+import { CurrentUser } from '@/common/security/decorator/current_user.decorator';
 import { Permissions } from '@/common/security/decorator/permissions.decorator';
 import { RoleService } from '@/role/service/role.service';
 import { CreateRoleRequest, UpdateRoleRequest, RoleResponse } from '@/role/dto';
-import { PaginationRequest, ApiResponse, PaginationResponse } from '@/common/dto';
+import {
+  PaginationRequest,
+  ApiResponse,
+  PaginationResponse,
+} from '@/common/dto';
 
 @Controller('roles')
 export class RoleController {

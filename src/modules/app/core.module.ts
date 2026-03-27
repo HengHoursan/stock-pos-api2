@@ -10,6 +10,8 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { JwtModule } from '../jwt/jwt.module';
 import { TokenBlacklistModule } from '../token_blacklist/token_blacklist.module';
 import { UploadModule } from '../upload/upload.module';
+import { UnitModule } from '../unit/unit.module';
+import { CurrencyModule } from '../currency/currency.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { UploadModule } from '../upload/upload.module';
     JwtModule,
     TokenBlacklistModule,
     UploadModule,
+    UnitModule,
+    CurrencyModule,
   ],
   exports: [
     UserModule,
@@ -37,6 +41,8 @@ import { UploadModule } from '../upload/upload.module';
     JwtModule,
     TokenBlacklistModule,
     UploadModule,
+    UnitModule,
+    CurrencyModule,
   ],
 })
 export class CoreModule {}

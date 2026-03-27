@@ -1,10 +1,14 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { CurrentUser } from '@/common/security/decorator/current-user.decorator';
+import { CurrentUser } from '@/common/security/decorator/current_user.decorator';
 import { Permissions } from '@/common/security/decorator/permissions.decorator';
 import { UserService } from '@/user/service/user.service';
 import { CreateUserRequest, UpdateUserRequest, UserResponse } from '@/user/dto';
-import { PaginationRequest, ApiResponse, PaginationResponse } from '@/common/dto';
+import {
+  PaginationRequest,
+  ApiResponse,
+  PaginationResponse,
+} from '@/common/dto';
 
 @Controller('users')
 export class UserController {

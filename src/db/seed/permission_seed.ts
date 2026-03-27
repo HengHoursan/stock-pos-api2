@@ -222,5 +222,73 @@ export const seedPermissions = async (dataSource: DataSource) => {
     },
   ]);
 
+  // Unit Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'unit:all',
+      displayName: 'All Unit Permissions',
+      group: 'Unit Management',
+      sort: 1,
+    },
+    {
+      name: 'unit:view',
+      displayName: 'View Units',
+      group: 'Unit Management',
+      sort: 2,
+    },
+    {
+      name: 'unit:create',
+      displayName: 'Create Units',
+      group: 'Unit Management',
+      sort: 3,
+    },
+    {
+      name: 'unit:update',
+      displayName: 'Update Units',
+      group: 'Unit Management',
+      sort: 4,
+    },
+    {
+      name: 'unit:delete',
+      displayName: 'Delete Units',
+      group: 'Unit Management',
+      sort: 5,
+    },
+  ]);
+
+  // Currency Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'currency:all',
+      displayName: 'All Currency Permissions',
+      group: 'Currency Management',
+      sort: 1,
+    },
+    {
+      name: 'currency:view',
+      displayName: 'View Currencies',
+      group: 'Currency Management',
+      sort: 2,
+    },
+    {
+      name: 'currency:create',
+      displayName: 'Create Currencies',
+      group: 'Currency Management',
+      sort: 3,
+    },
+    {
+      name: 'currency:update',
+      displayName: 'Update Currencies',
+      group: 'Currency Management',
+      sort: 4,
+    },
+    {
+      name: 'currency:delete',
+      displayName: 'Delete Currencies',
+      group: 'Currency Management',
+      sort: 5,
+    },
+  ]);
+
   console.log('✅ Permissions seeded and updated by group');
 };
