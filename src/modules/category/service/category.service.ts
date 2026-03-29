@@ -28,17 +28,22 @@ export class CategoryService {
       );
     }
 
-    const existingCode = await this.categoryRepository.findByCode(dto.code);
-    if (existingCode) {
-      throw new ConflictException(
-        `Category with code "${dto.code}" already exists`,
-      );
+    if (dto.code && dto.code.trim() !== '') {
+      const existingCode = await this.categoryRepository.findByCode(dto.code);
+      if (existingCode) {
+        throw new ConflictException(
+          `Category with code "${dto.code}" already exists`,
+        );
+      }
     }
+
+    const code = dto.code?.trim() || generateCode('CAT');
+    const slug = dto.slug?.trim() || slugify(dto.name);
 
     const category = this.categoryRepository.create({
       ...dto,
-      code: dto.code ?? generateCode('CAT'),
-      slug: dto.slug ?? slugify(dto.name),
+      code,
+      slug,
       createdBy: currentUserId,
       updatedBy: currentUserId,
     });
@@ -85,9 +90,17 @@ export class CategoryService {
           `Category with name "${dto.name}" already exists`,
         );
       }
-      if (!dto.slug) {
+      if (!dto.slug || dto.slug.trim() === '') {
         dto.slug = slugify(dto.name);
       }
+    }
+
+    if (dto.slug !== undefined && dto.slug.trim() === '') {
+      dto.slug = slugify(category.name);
+    }
+
+    if (dto.code !== undefined && dto.code.trim() === '') {
+      delete dto.code; // Don't update to empty string
     }
 
     if (dto.code && dto.code !== category.code) {

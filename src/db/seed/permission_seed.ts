@@ -290,5 +290,39 @@ export const seedPermissions = async (dataSource: DataSource) => {
     },
   ]);
 
+  // Discount Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'discount:all',
+      displayName: 'All Discount Permissions',
+      group: 'Discount Management',
+      sort: 1,
+    },
+    {
+      name: 'discount:view',
+      displayName: 'View Discounts',
+      group: 'Discount Management',
+      sort: 2,
+    },
+    {
+      name: 'discount:create',
+      displayName: 'Create Discounts',
+      group: 'Discount Management',
+      sort: 3,
+    },
+    {
+      name: 'discount:update',
+      displayName: 'Update Discounts',
+      group: 'Discount Management',
+      sort: 4,
+    },
+    {
+      name: 'discount:delete',
+      displayName: 'Delete Discounts',
+      group: 'Discount Management',
+      sort: 5,
+    },
+  ]);
+
   console.log('✅ Permissions seeded and updated by group');
 };

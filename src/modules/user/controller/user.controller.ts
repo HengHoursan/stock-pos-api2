@@ -13,6 +13,15 @@ import {
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+ 
+  @Post('me')
+  async me(@CurrentUser('id') userId: number) {
+    const user = await this.userService.getProfile(userId);
+    return ApiResponse.success(
+      plainToInstance(UserResponse, user),
+      'User profile retrieved successfully',
+    );
+  }
 
   @Post('create')
   @Permissions('user:create')

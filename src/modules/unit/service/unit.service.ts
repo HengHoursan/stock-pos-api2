@@ -24,8 +24,8 @@ export class UnitService {
     currentUserId: number | null = null,
   ): Promise<Unit> {
     const name = dto.name;
-    const code = dto.code ?? generateCode('UNIT');
-    const slug = dto.slug ?? slugify(name);
+    const code = dto.code?.trim() || generateCode('UNIT');
+    const slug = dto.slug?.trim() || slugify(name);
 
     // Check if name or code already exists
     const existingName = await this.unitRepository.findByName(name);
@@ -33,9 +33,11 @@ export class UnitService {
       throw new ConflictException(`Unit with name "${name}" already exists`);
     }
 
-    const existingCode = await this.unitRepository.findByCode(code);
-    if (existingCode) {
-      throw new ConflictException(`Unit with code "${code}" already exists`);
+    if (code && code.trim() !== '') {
+      const existingCode = await this.unitRepository.findByCode(code);
+      if (existingCode) {
+        throw new ConflictException(`Unit with code "${code}" already exists`);
+      }
     }
 
     const unit = this.unitRepository.create({
@@ -89,9 +91,17 @@ export class UnitService {
           `Unit with name "${dto.name}" already exists`,
         );
       }
-      if (!dto.slug) {
+      if (!dto.slug || dto.slug.trim() === '') {
         dto.slug = slugify(dto.name);
       }
+    }
+
+    if (dto.slug !== undefined && dto.slug.trim() === '') {
+      dto.slug = slugify(unit.name);
+    }
+
+    if (dto.code !== undefined && dto.code.trim() === '') {
+      delete dto.code; // Don't update to empty string
     }
 
     if (dto.code && dto.code !== unit.code) {

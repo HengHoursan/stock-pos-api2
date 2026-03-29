@@ -12,6 +12,7 @@ import { TokenBlacklistModule } from '../token_blacklist/token_blacklist.module'
 import { UploadModule } from '../upload/upload.module';
 import { UnitModule } from '../unit/unit.module';
 import { CurrencyModule } from '../currency/currency.module';
+import { DiscountModule } from '../discount/discount.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { CurrencyModule } from '../currency/currency.module';
     UploadModule,
     UnitModule,
     CurrencyModule,
+    DiscountModule,
   ],
   exports: [
     UserModule,
@@ -43,6 +45,7 @@ import { CurrencyModule } from '../currency/currency.module';
     UploadModule,
     UnitModule,
     CurrencyModule,
+    DiscountModule,
   ],
 })
 export class CoreModule {}

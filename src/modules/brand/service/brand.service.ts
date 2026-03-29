@@ -26,8 +26,8 @@ export class BrandService {
     currentUserId: number | null = null,
   ): Promise<Brand> {
     const name = dto.name;
-    const code = dto.code ?? generateCode('BRND');
-    const slug = dto.slug ?? slugify(name);
+    const code = dto.code?.trim() || generateCode('BRND');
+    const slug = dto.slug?.trim() || slugify(name);
 
     // Check if name or code already exists
     const existingName = await this.brandRepository.findByName(name);
@@ -35,9 +35,11 @@ export class BrandService {
       throw new ConflictException(`Brand with name "${name}" already exists`);
     }
 
-    const existingCode = await this.brandRepository.findByCode(code);
-    if (existingCode) {
-      throw new ConflictException(`Brand with code "${code}" already exists`);
+    if (code && code.trim() !== '') {
+      const existingCode = await this.brandRepository.findByCode(code);
+      if (existingCode) {
+        throw new ConflictException(`Brand with code "${code}" already exists`);
+      }
     }
 
     const brand = this.brandRepository.create({
@@ -91,9 +93,17 @@ export class BrandService {
           `Brand with name "${dto.name}" already exists`,
         );
       }
-      if (!dto.slug) {
+      if (!dto.slug || dto.slug.trim() === '') {
         dto.slug = slugify(dto.name);
       }
+    }
+
+    if (dto.slug !== undefined && dto.slug.trim() === '') {
+      dto.slug = slugify(brand.name);
+    }
+
+    if (dto.code !== undefined && dto.code.trim() === '') {
+      delete dto.code; // Don't update to empty string
     }
 
     if (dto.code && dto.code !== brand.code) {

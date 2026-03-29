@@ -3,11 +3,11 @@ import { IsString, IsNotEmpty, IsNumber, IsOptional, IsBoolean, Min } from 'clas
 export class CreateUnitRequest {
   @IsString()
   @IsOptional()
-  code: string;
+  code?: string;
 
   @IsNumber()
   @IsOptional()
-  parentId: number;
+  parentId?: number;
 
   @IsString()
   @IsNotEmpty()
@@ -15,11 +15,11 @@ export class CreateUnitRequest {
 
   @IsString()
   @IsOptional()
-  slug: string;
+  slug?: string;
 
   @IsString()
   @IsOptional()
-  symbol: string;
+  symbol?: string;
 
   @IsNumber()
   @IsOptional()

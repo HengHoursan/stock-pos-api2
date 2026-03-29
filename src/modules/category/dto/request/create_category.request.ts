@@ -3,11 +3,11 @@ import { IsString, IsNotEmpty, IsNumber, IsOptional, IsBoolean } from 'class-val
 export class CreateCategoryRequest {
   @IsString()
   @IsOptional()
-  code: string;
+  code?: string;
 
   @IsNumber()
   @IsOptional()
-  parentId: number;
+  parentId?: number;
 
   @IsString()
   @IsNotEmpty()
@@ -15,15 +15,15 @@ export class CreateCategoryRequest {
 
   @IsString()
   @IsOptional()
-  slug: string;
+  slug?: string;
 
   @IsString()
   @IsOptional()
-  description: string;
+  description?: string;
 
   @IsString()
   @IsOptional()
-  imageUrl: string;
+  imageUrl?: string;
 
   @IsBoolean()
   @IsOptional()

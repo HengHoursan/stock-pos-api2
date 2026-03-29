@@ -32,4 +32,13 @@ export class UserRepository extends Repository<User> {
       .where('user.email = :email', { email })
       .getOne();
   }
+
+  async findByIdWithPermissions(id: number): Promise<User | null> {
+    return this.createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .leftJoinAndSelect('role.rolePermissions', 'rp')
+      .leftJoinAndSelect('rp.permission', 'permission')
+      .where('user.id = :id', { id })
+      .getOne();
+  }
 }

@@ -7,29 +7,29 @@ export class UpdateCategoryRequest{
 
     @IsString()
     @IsOptional()
-    code: string;
+    code?: string;
 
     @IsNumber()
     @IsOptional()
-    parentId: number;
+    parentId?: number;
 
     @IsString()
     @IsOptional()
-    name: string;
+    name?: string;
 
     @IsString()
     @IsOptional()
-    slug: string;
+    slug?: string;
 
     @IsString()
     @IsOptional()
-    description: string;
+    description?: string;
 
     @IsString()
     @IsOptional()
-    imageUrl: string;
+    imageUrl?: string;
 
     @IsBoolean()
     @IsOptional()
-    status: boolean = true;
+    status?: boolean = true;
 }

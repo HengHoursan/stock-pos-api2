@@ -53,6 +53,12 @@ export class UserService {
     return user;
   }
 
+  async getProfile(id: number): Promise<User> {
+    const user = await this.userRepository.findByIdWithPermissions(id);
+    if (!user) throw new NotFoundException(`User with id ${id} not found`);
+    return user;
+  }
+
   async findByUsername(username: string): Promise<User | null> {
     return this.userRepository.findByUsernameWithPermissions(username);
   }
