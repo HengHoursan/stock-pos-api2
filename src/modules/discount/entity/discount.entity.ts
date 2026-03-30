@@ -17,4 +17,7 @@ export class Discount extends SoftDeleteEntity {
 
   @Column({ name: 'discount_end_date', type: 'timestamp' })
   discountEndDate: Date;
+
+  @Column({ default: true })
+  status: boolean;
 }

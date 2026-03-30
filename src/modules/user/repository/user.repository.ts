@@ -46,7 +46,7 @@ export class UserRepository extends Repository<User> {
   async findAllWithPagination(
     pagination: PaginationRequest,
   ): Promise<[User[], number]> {
-    const { page, limit, sortBy, sortOrder, search } = pagination;
+    const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
     let where: FindOptionsWhere<User> | FindOptionsWhere<User>[] = {};
 
@@ -55,6 +55,15 @@ export class UserRepository extends Repository<User> {
         { username: ILike(`%${search}%`) },
         { email: ILike(`%${search}%`) },
       ];
+    }
+
+    if (filter && filter !== 'all') {
+      const statusValue = filter === 'active';
+      if (Array.isArray(where)) {
+        where = where.map((condition) => ({ ...condition, status: statusValue }));
+      } else {
+        where.status = statusValue;
+      }
     }
 
     return this.findAndCount({

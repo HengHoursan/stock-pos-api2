@@ -16,4 +16,7 @@ export class User extends SoftDeleteEntity {
   @ManyToOne(() => Role, (role) => role.users, { eager: true })
   @JoinColumn({ name: 'role_id' })
   role: Role;
+
+  @Column({ default: true })
+  status: boolean;
 }

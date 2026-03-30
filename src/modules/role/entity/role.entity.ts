@@ -16,4 +16,7 @@ export class Role extends SoftDeleteEntity {
 
   @OneToMany(() => RolePermission, (rp) => rp.role)
   rolePermissions: RolePermission[];
+
+  @Column({ default: true })
+  status: boolean;
 }

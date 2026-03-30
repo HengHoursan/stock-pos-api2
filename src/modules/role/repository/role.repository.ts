@@ -16,7 +16,7 @@ export class RoleRepository extends Repository<Role> {
   async findAllWithPagination(
     pagination: PaginationRequest,
   ): Promise<[Role[], number]> {
-    const { page, limit, sortBy, sortOrder, search } = pagination;
+    const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
     let where: FindOptionsWhere<Role> | FindOptionsWhere<Role>[] = {};
 
@@ -25,6 +25,15 @@ export class RoleRepository extends Repository<Role> {
         { name: ILike(`%${search}%`) },
         { displayName: ILike(`%${search}%`) },
       ];
+    }
+
+    if (filter && filter !== 'all') {
+      const statusValue = filter === 'active';
+      if (Array.isArray(where)) {
+        where = where.map((condition) => ({ ...condition, status: statusValue }));
+      } else {
+        where.status = statusValue;
+      }
     }
 
     return this.findAndCount({

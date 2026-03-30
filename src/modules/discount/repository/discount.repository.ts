@@ -16,7 +16,7 @@ export class DiscountRepository extends Repository<Discount> {
   async findAllWithPagination(
     pagination: PaginationRequest,
   ): Promise<[Discount[], number]> {
-    const { page, limit, sortBy, sortOrder, search } = pagination;
+    const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
     let where: FindOptionsWhere<Discount> | FindOptionsWhere<Discount>[] = {};
 
@@ -24,6 +24,15 @@ export class DiscountRepository extends Repository<Discount> {
       where = [
         { code: ILike(`%${search}%`) },
       ];
+    }
+
+    if (filter && filter !== 'all') {
+      const statusValue = filter === 'active';
+      if (Array.isArray(where)) {
+        where = where.map((condition) => ({ ...condition, status: statusValue }));
+      } else {
+        where.status = statusValue;
+      }
     }
 
     return this.findAndCount({

@@ -16,7 +16,7 @@ export class PermissionRepository extends Repository<Permission> {
   async findAllWithPagination(
     pagination: PaginationRequest,
   ): Promise<[Permission[], number]> {
-    const { page, limit, sortBy, sortOrder, search } = pagination;
+    const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
     let where: FindOptionsWhere<Permission> | FindOptionsWhere<Permission>[] = {};
 
@@ -26,6 +26,15 @@ export class PermissionRepository extends Repository<Permission> {
         { displayName: ILike(`%${search}%`) },
         { group: ILike(`%${search}%`) },
       ];
+    }
+
+    if (filter && filter !== 'all') {
+      const statusValue = filter === 'active';
+      if (Array.isArray(where)) {
+        where = where.map((condition) => ({ ...condition, status: statusValue }));
+      } else {
+        where.status = statusValue;
+      }
     }
 
     return this.findAndCount({
