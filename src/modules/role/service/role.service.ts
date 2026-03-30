@@ -25,11 +25,8 @@ export class RoleService {
     pagination: PaginationRequest,
   ): Promise<[Role[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.roleRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { [sortBy]: sortOrder } as any,
-    });
+    const [data, total] = await this.roleRepository.findAllWithPagination(pagination);
+    
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }

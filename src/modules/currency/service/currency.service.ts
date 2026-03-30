@@ -43,11 +43,8 @@ export class CurrencyService {
     pagination: PaginationRequest,
   ): Promise<[Currency[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.currencyRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { [sortBy]: sortOrder } as any,
-    });
+    const [data, total] = await this.currencyRepository.findAllWithPagination(pagination);
+    
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }

@@ -30,12 +30,8 @@ export class UserService {
     pagination: PaginationRequest,
   ): Promise<[User[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.userRepository.findAndCount({
-      relations: ['role'],
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { [sortBy]: sortOrder } as any,
-    });
+    const [data, total] = await this.userRepository.findAllWithPagination(pagination);
+    
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }

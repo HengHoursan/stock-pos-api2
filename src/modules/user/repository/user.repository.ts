@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, ILike, FindOptionsWhere } from 'typeorm';
 import { User } from '../entity/user.entity';
+import { PaginationRequest } from '@/common/dto';
 
 @Injectable()
 export class UserRepository extends Repository<User> {
@@ -40,5 +41,28 @@ export class UserRepository extends Repository<User> {
       .leftJoinAndSelect('rp.permission', 'permission')
       .where('user.id = :id', { id })
       .getOne();
+  }
+
+  async findAllWithPagination(
+    pagination: PaginationRequest,
+  ): Promise<[User[], number]> {
+    const { page, limit, sortBy, sortOrder, search } = pagination;
+
+    let where: FindOptionsWhere<User> | FindOptionsWhere<User>[] = {};
+
+    if (search && search.trim() !== '') {
+      where = [
+        { username: ILike(`%${search}%`) },
+        { email: ILike(`%${search}%`) },
+      ];
+    }
+
+    return this.findAndCount({
+      where,
+      relations: ['role'],
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { [sortBy]: sortOrder } as any,
+    });
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, ILike, FindOptionsWhere } from 'typeorm';
 import { Role } from '../entity/role.entity';
+import { PaginationRequest } from '@/common/dto';
 
 @Injectable()
 export class RoleRepository extends Repository<Role> {
@@ -10,5 +11,27 @@ export class RoleRepository extends Repository<Role> {
 
   async findById(id: number): Promise<Role | null> {
     return this.findOne({ where: { id } });
+  }
+
+  async findAllWithPagination(
+    pagination: PaginationRequest,
+  ): Promise<[Role[], number]> {
+    const { page, limit, sortBy, sortOrder, search } = pagination;
+
+    let where: FindOptionsWhere<Role> | FindOptionsWhere<Role>[] = {};
+
+    if (search && search.trim() !== '') {
+      where = [
+        { name: ILike(`%${search}%`) },
+        { displayName: ILike(`%${search}%`) },
+      ];
+    }
+
+    return this.findAndCount({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { [sortBy]: sortOrder } as any,
+    });
   }
 }

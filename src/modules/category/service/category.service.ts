@@ -54,11 +54,8 @@ export class CategoryService {
     pagination: PaginationRequest,
   ): Promise<[Category[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.categoryRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { [sortBy]: sortOrder } as any,
-    });
+    const [data, total] = await this.categoryRepository.findAllWithPagination(pagination);
+    
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }

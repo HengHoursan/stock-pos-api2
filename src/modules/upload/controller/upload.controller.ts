@@ -43,7 +43,7 @@ export class UploadController {
   ) {
     const uploaded = await this.cloudinaryService.uploadImage(file);
     const responseDto = plainToInstance(UploadResponse, {
-      image_url: (uploaded as any).secure_url,
+      image_url: uploaded.secure_url,
     });
     return ApiResponse.success(responseDto, 'Image uploaded successfully');
   }
