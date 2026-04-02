@@ -14,7 +14,7 @@ import {
 import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { Product } from '../entity/product.entity';
 import { ProductDetail } from '../entity/product_detail.entity';
-import { generateCode, slugify, DateConvertor } from '@/common/util/helper';
+import { generateSKU, generateCode, DateConvertor } from '@/common/util/helper';
 
 @Injectable()
 export class ProductService {
@@ -35,17 +35,17 @@ export class ProductService {
       );
     }
 
-    if (dto.code && dto.code.trim() !== '') {
-      const existingCode = await this.productRepository.findByCode(dto.code);
-      if (existingCode) {
+    if (dto.skuCode && dto.skuCode.trim() !== '') {
+      const existingSku = await this.productRepository.findBySkuCode(dto.skuCode);
+      if (existingSku) {
         throw new ConflictException(
-          `Product with code "${dto.code}" already exists`,
+          `Product with SKU "${dto.skuCode}" already exists`,
         );
       }
     }
 
-    const code = dto.code?.trim() || generateCode('PROD');
-    const skuCode = dto.skuCode?.trim() || generateCode('SKU');
+    const code = dto.code?.trim() || generateCode('PRD');
+    const skuCode = dto.skuCode?.trim() || generateSKU();
 
     return await this.dataSource.transaction(async (manager) => {
       // 1. Create Product
@@ -127,6 +127,14 @@ export class ProductService {
       if (await this.productRepository.findByCode(dto.code)) {
         throw new ConflictException(
           `Product with code "${dto.code}" already exists`,
+        );
+      }
+    }
+
+    if (dto.skuCode && dto.skuCode !== product.skuCode) {
+      if (await this.productRepository.findBySkuCode(dto.skuCode)) {
+        throw new ConflictException(
+          `Product with SKU "${dto.skuCode}" already exists`,
         );
       }
     }

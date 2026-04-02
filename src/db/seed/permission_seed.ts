@@ -290,39 +290,52 @@ export const seedPermissions = async (dataSource: DataSource) => {
     },
   ]);
 
-  // Discount Management
+  // Product Management
   await seedPermissionsByGroup(dataSource, [
     {
-      name: 'discount:all',
-      displayName: 'All Discount Permissions',
-      group: 'Discount Management',
+      name: 'product:all',
+      displayName: 'All Product Permissions',
+      group: 'Product Management',
       sort: 1,
     },
     {
-      name: 'discount:view',
-      displayName: 'View Discounts',
-      group: 'Discount Management',
+      name: 'product:list',
+      displayName: 'List Products',
+      group: 'Product Management',
       sort: 2,
     },
     {
-      name: 'discount:create',
-      displayName: 'Create Discounts',
-      group: 'Discount Management',
+      name: 'product:view',
+      displayName: 'View Product Details',
+      group: 'Product Management',
       sort: 3,
     },
     {
-      name: 'discount:update',
-      displayName: 'Update Discounts',
-      group: 'Discount Management',
+      name: 'product:create',
+      displayName: 'Create Products',
+      group: 'Product Management',
       sort: 4,
     },
     {
-      name: 'discount:delete',
-      displayName: 'Delete Discounts',
-      group: 'Discount Management',
+      name: 'product:update',
+      displayName: 'Update Products',
+      group: 'Product Management',
       sort: 5,
     },
+    {
+      name: 'product:status-update',
+      displayName: 'Update Product Status',
+      group: 'Product Management',
+      sort: 6,
+    },
+    {
+      name: 'product:delete',
+      displayName: 'Delete Products',
+      group: 'Product Management',
+      sort: 7,
+    },
   ]);
+
 
   console.log('✅ Permissions seeded and updated by group');
 };

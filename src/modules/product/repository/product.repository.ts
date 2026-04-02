@@ -13,6 +13,10 @@ export class ProductRepository extends Repository<Product> {
     return this.findOne({ where: { code } });
   }
 
+  async findBySkuCode(skuCode: string): Promise<Product | null> {
+    return this.findOne({ where: { skuCode } });
+  }
+
   async findByName(name: string): Promise<Product | null> {
     return this.findOne({ where: { name } });
   }

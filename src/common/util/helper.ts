@@ -8,6 +8,16 @@ export const generateCode = (prefix: string): string => {
 };
 
 /**
+ * Generates a professional SKU: SKU-YYYYMMDD-XXXXXX
+ */
+export const generateSKU = (prefix = 'SKU'): string => {
+  const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const random = Math.floor(100000 + Math.random() * 900000);
+  return `${prefix}-${date}-${random}`;
+};
+
+
+/**
  * Simple slugify function
  */
 export const slugify = (text: string): string => {
