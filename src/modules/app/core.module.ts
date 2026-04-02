@@ -13,6 +13,7 @@ import { UploadModule } from '../upload/upload.module';
 import { UnitModule } from '../unit/unit.module';
 import { CurrencyModule } from '../currency/currency.module';
 import { DiscountModule } from '../discount/discount.module';
+import { ProductModule } from '../product/product.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { DiscountModule } from '../discount/discount.module';
     UnitModule,
     CurrencyModule,
     DiscountModule,
+    ProductModule,
   ],
   exports: [
     UserModule,
@@ -46,6 +48,7 @@ import { DiscountModule } from '../discount/discount.module';
     UnitModule,
     CurrencyModule,
     DiscountModule,
+    ProductModule,
   ],
 })
 export class CoreModule {}
