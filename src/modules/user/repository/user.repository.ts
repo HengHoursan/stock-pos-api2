@@ -57,8 +57,8 @@ export class UserRepository extends Repository<User> {
       ];
     }
 
-    if (filter && filter !== 'all') {
-      const statusValue = filter === 'active';
+    if (filter && filter.status && filter.status !== 'all') {
+      const statusValue = filter.status === 'active';
       if (Array.isArray(where)) {
         where = where.map((condition) => ({ ...condition, status: statusValue }));
       } else {

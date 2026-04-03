@@ -328,13 +328,13 @@ export const seedPermissions = async (dataSource: DataSource) => {
       group: 'Product Management',
       sort: 6,
     },
-      {
-        name: 'product:delete',
-        displayName: 'Delete Products',
-        group: 'Product Management',
-        sort: 7,
-      },
-    ]);
+    {
+      name: 'product:delete',
+      displayName: 'Delete Products',
+      group: 'Product Management',
+      sort: 7,
+    },
+  ]);
 
   // Supplier Management
   await seedPermissionsByGroup(dataSource, [
@@ -404,6 +404,38 @@ export const seedPermissions = async (dataSource: DataSource) => {
     },
   ]);
 
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'transaction:all',
+      displayName: 'All Transaction Permissions',
+      group: 'Transaction Management',
+      sort: 1,
+    },
+    {
+      name: 'transaction:view',
+      displayName: 'View Transactions',
+      group: 'Transaction Management',
+      sort: 2,
+    },
+    {
+      name: 'transaction:create',
+      displayName: 'Create Transactions',
+      group: 'Transaction Management',
+      sort: 3,
+    },
+    {
+      name: 'transaction:update',
+      displayName: 'Update Transactions',
+      group: 'Transaction Management',
+      sort: 4,
+    },
+    {
+      name: 'transaction:delete',
+      displayName: 'Delete Transactions',
+      group: 'Transaction Management',
+      sort: 5,
+    },
+  ]);
 
   console.log('✅ Permissions seeded and updated by group');
 };

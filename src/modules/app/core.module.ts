@@ -14,6 +14,7 @@ import { UnitModule } from '../unit/unit.module';
 import { CurrencyModule } from '../currency/currency.module';
 import { DiscountModule } from '../discount/discount.module';
 import { ProductModule } from '../product/product.module';
+import { TransactionModule } from '../transaction/transaction.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ProductModule } from '../product/product.module';
     CurrencyModule,
     DiscountModule,
     ProductModule,
+    TransactionModule,
   ],
   exports: [
     UserModule,
@@ -49,6 +51,7 @@ import { ProductModule } from '../product/product.module';
     CurrencyModule,
     DiscountModule,
     ProductModule,
+    TransactionModule,
   ],
 })
 export class CoreModule {}

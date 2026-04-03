@@ -1,4 +1,4 @@
-import { IsOptional, IsInt, Min, IsString } from 'class-validator';
+import { IsOptional, IsInt, Min, IsString, IsObject, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class PaginationRequest {
@@ -12,15 +12,19 @@ export class PaginationRequest {
   @Type(() => Number)
   @IsInt()
   @Min(1)
+  @Max(500)
   limit: number = 10;
 
   @IsOptional()
   @IsString()
   search?: string;
 
+  /**
+   * Filter as a key-value object (e.g. { "status": "active", "categoryId": "12" })
+   */
   @IsOptional()
-  @IsString()
-  filter?: string;
+  @IsObject()
+  filter?: Record<string, string>;
 
   @IsOptional()
   @IsString()

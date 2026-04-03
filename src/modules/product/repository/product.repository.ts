@@ -13,12 +13,12 @@ export class ProductRepository extends Repository<Product> {
     return this.findOne({ where: { code } });
   }
 
-  async findBySkuCode(skuCode: string): Promise<Product | null> {
-    return this.findOne({ where: { skuCode } });
-  }
-
   async findByName(name: string): Promise<Product | null> {
     return this.findOne({ where: { name } });
+  }
+
+  async findBySkuCode(skuCode: string): Promise<Product | null> {
+    return this.findOne({ where: { skuCode } });
   }
 
   async findAllWithPagination(
@@ -28,21 +28,32 @@ export class ProductRepository extends Repository<Product> {
 
     let where: FindOptionsWhere<Product> | FindOptionsWhere<Product>[] = {};
 
-    if (search && search.trim() !== '') {
-      where = [
-        { name: ILike(`%${search}%`) },
-        { code: ILike(`%${search}%`) },
-        { skuCode: ILike(`%${search}%`) },
-      ];
+    // Base conditions for filtering (from the 'filter' object)
+    const baseConditions: FindOptionsWhere<Product> = {};
+
+    if (filter) {
+      if (filter.status && filter.status !== 'all') {
+        baseConditions.status = filter.status === 'active';
+      }
+      if (filter.categoryId) {
+        baseConditions.categoryId = Number(filter.categoryId);
+      }
+      if (filter.brandId) {
+        baseConditions.brandId = Number(filter.brandId);
+      }
+      if (filter.unitId) {
+        baseConditions.unitId = Number(filter.unitId);
+      }
     }
 
-    if (filter && filter !== 'all') {
-      const statusValue = filter === 'active';
-      if (Array.isArray(where)) {
-        where = where.map((condition) => ({ ...condition, status: statusValue }));
-      } else {
-        where.status = statusValue;
-      }
+    if (search && search.trim() !== '') {
+      where = [
+        { ...baseConditions, name: ILike(`%${search}%`) },
+        { ...baseConditions, code: ILike(`%${search}%`) },
+        { ...baseConditions, skuCode: ILike(`%${search}%`) },
+      ];
+    } else {
+      where = baseConditions;
     }
 
     return this.findAndCount({

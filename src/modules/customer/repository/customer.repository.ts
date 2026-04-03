@@ -24,23 +24,28 @@ export class CustomerRepository extends Repository<Customer> {
 
     let where: FindOptionsWhere<Customer> | FindOptionsWhere<Customer>[] = {};
 
-    if (search && search.trim() !== '') {
-      where = [
-        { name: ILike(`%${search}%`) },
-        { code: ILike(`%${search}%`) },
-        { nameLatin: ILike(`%${search}%`) },
-        { email: ILike(`%${search}%`) },
-        { phoneNumber: ILike(`%${search}%`) },
-      ];
+    // Base conditions for filtering (non-search)
+    const baseConditions: FindOptionsWhere<Customer> = {};
+
+    if (filter) {
+      if (filter.status && filter.status !== 'all') {
+        baseConditions.status = filter.status === 'active';
+      }
+      if (filter.customerType) {
+        baseConditions.type = Number(filter.customerType);
+      }
     }
 
-    if (filter && filter !== 'all') {
-      const statusValue = filter === 'active';
-      if (Array.isArray(where)) {
-        where = where.map((condition) => ({ ...condition, status: statusValue }));
-      } else {
-        where.status = statusValue;
-      }
+    if (search && search.trim() !== '') {
+      where = [
+        { ...baseConditions, name: ILike(`%${search}%`) },
+        { ...baseConditions, code: ILike(`%${search}%`) },
+        { ...baseConditions, nameLatin: ILike(`%${search}%`) },
+        { ...baseConditions, email: ILike(`%${search}%`) },
+        { ...baseConditions, phoneNumber: ILike(`%${search}%`) },
+      ];
+    } else {
+      where = baseConditions;
     }
 
     return this.findAndCount({
