@@ -4,6 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CoreModule } from './core.module';
 import { SeedModule } from '../seed/seed.module';
+import { SupplierModule } from '../supplier/supplier.module';
+import { CustomerModule } from '../customer/customer.module';
 import databaseConfig from '../../config/db.config';
 import jwtConfig from '../../config/jwt.config';
 import cloudinaryConfig from '../../config/cloudinary.config';
@@ -22,6 +24,8 @@ import { PermissionsGuard } from '../../common/security/guard/permissions.guard'
     }),
     CoreModule,
     SeedModule,
+    SupplierModule,
+    CustomerModule,
   ],
   providers: [
     {

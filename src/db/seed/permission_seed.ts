@@ -328,11 +328,79 @@ export const seedPermissions = async (dataSource: DataSource) => {
       group: 'Product Management',
       sort: 6,
     },
+      {
+        name: 'product:delete',
+        displayName: 'Delete Products',
+        group: 'Product Management',
+        sort: 7,
+      },
+    ]);
+
+  // Supplier Management
+  await seedPermissionsByGroup(dataSource, [
     {
-      name: 'product:delete',
-      displayName: 'Delete Products',
-      group: 'Product Management',
-      sort: 7,
+      name: 'supplier:all',
+      displayName: 'All Supplier Permissions',
+      group: 'Supplier Management',
+      sort: 1,
+    },
+    {
+      name: 'supplier:view',
+      displayName: 'View Suppliers',
+      group: 'Supplier Management',
+      sort: 2,
+    },
+    {
+      name: 'supplier:create',
+      displayName: 'Create Suppliers',
+      group: 'Supplier Management',
+      sort: 3,
+    },
+    {
+      name: 'supplier:update',
+      displayName: 'Update Suppliers',
+      group: 'Supplier Management',
+      sort: 4,
+    },
+    {
+      name: 'supplier:delete',
+      displayName: 'Delete Suppliers',
+      group: 'Supplier Management',
+      sort: 5,
+    },
+  ]);
+
+  // Customer Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'customer:all',
+      displayName: 'All Customer Permissions',
+      group: 'Customer Management',
+      sort: 1,
+    },
+    {
+      name: 'customer:view',
+      displayName: 'View Customers',
+      group: 'Customer Management',
+      sort: 2,
+    },
+    {
+      name: 'customer:create',
+      displayName: 'Create Customers',
+      group: 'Customer Management',
+      sort: 3,
+    },
+    {
+      name: 'customer:update',
+      displayName: 'Update Customers',
+      group: 'Customer Management',
+      sort: 4,
+    },
+    {
+      name: 'customer:delete',
+      displayName: 'Delete Customers',
+      group: 'Customer Management',
+      sort: 5,
     },
   ]);
 
