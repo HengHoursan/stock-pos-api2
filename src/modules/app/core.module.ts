@@ -15,6 +15,11 @@ import { CurrencyModule } from '../currency/currency.module';
 import { DiscountModule } from '../discount/discount.module';
 import { ProductModule } from '../product/product.module';
 import { TransactionModule } from '../transaction/transaction.module';
+import { PurchaseQuotationModule } from '../purchase_quotation/purchase_quotation.module';
+import { PurchaseOrderModule } from '../purchase_order/purchase_order.module';
+import { SaleOrderModule } from '../sale_order/sale_order.module';
+import { PurchaseInvoiceModule } from '../purchase_invoice/purchase_invoice.module';
+import { SaleInvoiceModule } from '../sale_invoice/sale_invoice.module';
 
 @Module({
   imports: [
@@ -34,6 +39,11 @@ import { TransactionModule } from '../transaction/transaction.module';
     DiscountModule,
     ProductModule,
     TransactionModule,
+    PurchaseQuotationModule,
+    PurchaseOrderModule,
+    SaleOrderModule,
+    PurchaseInvoiceModule,
+    SaleInvoiceModule,
   ],
   exports: [
     UserModule,
@@ -52,6 +62,11 @@ import { TransactionModule } from '../transaction/transaction.module';
     DiscountModule,
     ProductModule,
     TransactionModule,
+    PurchaseQuotationModule,
+    PurchaseOrderModule,
+    SaleOrderModule,
+    PurchaseInvoiceModule,
+    SaleInvoiceModule,
   ],
 })
 export class CoreModule {}

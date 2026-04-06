@@ -1,0 +1,266 @@
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
+import { DataSource } from 'typeorm';
+import { PurchaseInvoiceRepository } from '../repository/purchase_invoice.repository';
+import {
+  CreatePurchaseInvoiceRequest,
+  UpdatePurchaseInvoiceRequest,
+  UpdatePurchaseInvoiceStatusRequest,
+} from '../dto';
+import { PaginationRequest, PaginationMeta } from '@/common/dto';
+import { PurchaseInvoice } from '../entity/purchase_invoice.entity';
+import { PurchaseInvoiceDetail } from '../entity/purchase_invoice_detail.entity';
+import { PurchaseOrder } from '../../purchase_order/entity/purchase_order.entity';
+import { InvoiceStatus } from '@/common/enum/invoice_status.enum';
+import { OrderStatus } from '@/common/enum/order_status.enum';
+import { PaymentMethod } from '@/common/enum/payment_method.enum';
+import { generateCode, DateConvertor } from '@/common/util/helper';
+
+@Injectable()
+export class PurchaseInvoiceService {
+  constructor(
+    private readonly purchaseInvoiceRepository: PurchaseInvoiceRepository,
+    private readonly dataSource: DataSource,
+  ) {}
+
+  async create(
+    dto: CreatePurchaseInvoiceRequest,
+    currentUserId: number | null = null,
+  ): Promise<PurchaseInvoice> {
+    const code = dto.code?.trim() || generateCode('PINV');
+
+    const existingCode = await this.purchaseInvoiceRepository.findByCode(code);
+    if (existingCode) {
+      throw new ConflictException(`Purchase Invoice with code "${code}" already exists`);
+    }
+
+    return await this.dataSource.transaction(async (manager) => {
+      const invoice = manager.create(PurchaseInvoice, {
+        code,
+        supplierId: dto.supplierId,
+        invoiceDate: DateConvertor(dto.invoiceDate) || new Date(),
+        description: dto.description,
+        paidAmount: dto.paidAmount || 0,
+        paymentMethod: dto.paymentMethod || PaymentMethod.CASH,
+        status: InvoiceStatus.DRAFT,
+        isCancel: false,
+        totalLine: dto.details?.length || 0,
+        totalPrice: 0,
+        createdBy: currentUserId,
+        updatedBy: currentUserId,
+      });
+      const savedInvoice = await manager.save(PurchaseInvoice, invoice);
+
+      let totalPrice = 0;
+      const purchaseOrderIds = new Set<number>();
+
+      if (dto.details && dto.details.length > 0) {
+        for (const item of dto.details) {
+          const detail = manager.create(PurchaseInvoiceDetail, {
+            purchaseInvoiceId: savedInvoice.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            totalPrice: item.totalPrice,
+            purchaseOrderId: item.purchaseOrderId || null,
+            purchaseOrderDetailId: item.purchaseOrderDetailId || null,
+            createdBy: currentUserId,
+            updatedBy: currentUserId,
+          });
+          await manager.save(PurchaseInvoiceDetail, detail);
+          totalPrice += Number(item.totalPrice);
+
+          if (item.purchaseOrderId) {
+            purchaseOrderIds.add(item.purchaseOrderId);
+          }
+        }
+      }
+
+      savedInvoice.totalPrice = totalPrice;
+      await manager.save(PurchaseInvoice, savedInvoice);
+
+      // Update Purchase Order fulfillment
+      for (const orderId of purchaseOrderIds) {
+        const order = await manager.findOne(PurchaseOrder, { where: { id: orderId } });
+        if (order) {
+          const detailsForOrder = dto.details.filter(d => d.purchaseOrderId === orderId);
+          order.totalCloseLine = (order.totalCloseLine || 0) + detailsForOrder.length;
+          if (order.totalCloseLine >= order.totalLine) {
+            order.status = OrderStatus.COMPLETED;
+          } else if (order.totalCloseLine > 0) {
+            order.status = OrderStatus.PARTIAL;
+          }
+          order.updatedBy = currentUserId;
+          await manager.save(PurchaseOrder, order);
+        }
+      }
+
+      return manager.findOne(PurchaseInvoice, {
+        where: { id: savedInvoice.id },
+        relations: ['supplier', 'details', 'details.product'],
+      }) as Promise<PurchaseInvoice>;
+    });
+  }
+
+  async findAllWithPagination(
+    pagination: PaginationRequest,
+  ): Promise<[PurchaseInvoice[], PaginationMeta]> {
+    const { page, limit, sortBy, sortOrder } = pagination;
+    const [data, total] =
+      await this.purchaseInvoiceRepository.findAllWithPagination(pagination);
+    const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
+    return [data, meta];
+  }
+
+  async findAll(): Promise<PurchaseInvoice[]> {
+    return this.purchaseInvoiceRepository.find({
+      relations: ['supplier', 'details', 'details.product'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findOne(id: number): Promise<PurchaseInvoice> {
+    const invoice = await this.purchaseInvoiceRepository.findOne({
+      where: { id },
+      relations: ['supplier', 'details', 'details.product'],
+    });
+    if (!invoice) {
+      throw new NotFoundException(`Purchase Invoice with id ${id} not found`);
+    }
+    return invoice;
+  }
+
+  async update(
+    dto: UpdatePurchaseInvoiceRequest,
+    currentUserId: number | null = null,
+  ): Promise<PurchaseInvoice> {
+    const invoice = await this.findOne(dto.id);
+
+    if (invoice.status !== InvoiceStatus.DRAFT) {
+      throw new BadRequestException('Cannot edit a purchase invoice that is not in DRAFT status');
+    }
+
+    if (dto.code && dto.code !== invoice.code) {
+      const existing = await this.purchaseInvoiceRepository.findByCode(dto.code);
+      if (existing) {
+        throw new ConflictException(`Purchase Invoice with code "${dto.code}" already exists`);
+      }
+    }
+
+    return await this.dataSource.transaction(async (manager) => {
+      if (dto.code) invoice.code = dto.code;
+      if (dto.supplierId) invoice.supplierId = dto.supplierId;
+      if (dto.invoiceDate) invoice.invoiceDate = DateConvertor(dto.invoiceDate) || invoice.invoiceDate;
+      if (dto.description !== undefined) invoice.description = dto.description;
+      if (dto.paidAmount !== undefined) invoice.paidAmount = dto.paidAmount;
+      if (dto.paymentMethod !== undefined) invoice.paymentMethod = dto.paymentMethod;
+      invoice.updatedBy = currentUserId;
+
+      if (dto.details) {
+        await manager.delete(PurchaseInvoiceDetail, { purchaseInvoiceId: invoice.id });
+
+        let totalPrice = 0;
+        for (const item of dto.details) {
+          const detail = manager.create(PurchaseInvoiceDetail, {
+            purchaseInvoiceId: invoice.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            totalPrice: item.totalPrice,
+            purchaseOrderId: item.purchaseOrderId || null,
+            purchaseOrderDetailId: item.purchaseOrderDetailId || null,
+            createdBy: currentUserId,
+            updatedBy: currentUserId,
+          });
+          await manager.save(PurchaseInvoiceDetail, detail);
+          totalPrice += Number(item.totalPrice);
+        }
+
+        invoice.totalLine = dto.details.length;
+        invoice.totalPrice = totalPrice;
+      }
+
+      await manager.save(PurchaseInvoice, invoice);
+
+      return manager.findOne(PurchaseInvoice, {
+        where: { id: invoice.id },
+        relations: ['supplier', 'details', 'details.product'],
+      }) as Promise<PurchaseInvoice>;
+    });
+  }
+
+  async updateStatus(
+    dto: UpdatePurchaseInvoiceStatusRequest,
+    currentUserId: number | null = null,
+  ): Promise<PurchaseInvoice> {
+    const invoice = await this.findOne(dto.id);
+    invoice.status = dto.status;
+    if (dto.status === InvoiceStatus.CANCELLED) {
+      invoice.isCancel = true;
+    }
+    invoice.updatedBy = currentUserId;
+    return this.purchaseInvoiceRepository.save(invoice);
+  }
+
+  async cancel(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<PurchaseInvoice> {
+    const invoice = await this.findOne(id);
+    if (invoice.status === InvoiceStatus.COMPLETED) {
+      throw new BadRequestException('Cannot cancel a completed purchase invoice');
+    }
+
+    return await this.dataSource.transaction(async (manager) => {
+      invoice.isCancel = true;
+      invoice.status = InvoiceStatus.CANCELLED;
+      invoice.updatedBy = currentUserId;
+
+      // Reverse Purchase Order fulfillment
+      const purchaseOrderIds = new Set<number>();
+      for (const detail of invoice.details) {
+        if (detail.purchaseOrderId) {
+          purchaseOrderIds.add(detail.purchaseOrderId);
+        }
+      }
+
+      for (const orderId of purchaseOrderIds) {
+        const order = await manager.findOne(PurchaseOrder, { where: { id: orderId } });
+        if (order) {
+          const detailsForOrder = invoice.details.filter(d => d.purchaseOrderId === orderId);
+          order.totalCloseLine = Math.max(0, (order.totalCloseLine || 0) - detailsForOrder.length);
+          if (order.totalCloseLine === 0) {
+            order.status = OrderStatus.PENDING;
+          } else if (order.totalCloseLine < order.totalLine) {
+            order.status = OrderStatus.PARTIAL;
+          }
+          order.updatedBy = currentUserId;
+          await manager.save(PurchaseOrder, order);
+        }
+      }
+
+      await manager.save(PurchaseInvoice, invoice);
+      return invoice;
+    });
+  }
+
+  async softDelete(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const invoice = await this.findOne(id);
+    invoice.deletedBy = currentUserId;
+    await this.purchaseInvoiceRepository.save(invoice);
+    await this.purchaseInvoiceRepository.softRemove(invoice);
+  }
+
+  async forceDelete(id: number): Promise<void> {
+    const invoice = await this.findOne(id);
+    await this.dataSource.transaction(async (manager) => {
+      await manager.delete(PurchaseInvoiceDetail, { purchaseInvoiceId: id });
+      await manager.delete(PurchaseInvoice, id);
+    });
+  }
+}

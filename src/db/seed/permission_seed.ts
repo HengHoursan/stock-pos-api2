@@ -437,5 +437,175 @@ export const seedPermissions = async (dataSource: DataSource) => {
     },
   ]);
 
+  // Purchase Quotation Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'purchase_quotation:all',
+      displayName: 'All Purchase Quotation Permissions',
+      group: 'Purchase Quotation Management',
+      sort: 1,
+    },
+    {
+      name: 'purchase_quotation:view',
+      displayName: 'View Purchase Quotations',
+      group: 'Purchase Quotation Management',
+      sort: 2,
+    },
+    {
+      name: 'purchase_quotation:create',
+      displayName: 'Create Purchase Quotations',
+      group: 'Purchase Quotation Management',
+      sort: 3,
+    },
+    {
+      name: 'purchase_quotation:update',
+      displayName: 'Update Purchase Quotations',
+      group: 'Purchase Quotation Management',
+      sort: 4,
+    },
+    {
+      name: 'purchase_quotation:delete',
+      displayName: 'Delete Purchase Quotations',
+      group: 'Purchase Quotation Management',
+      sort: 5,
+    },
+  ]);
+
+  // Purchase Order Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'purchase_order:all',
+      displayName: 'All Purchase Order Permissions',
+      group: 'Purchase Order Management',
+      sort: 1,
+    },
+    {
+      name: 'purchase_order:view',
+      displayName: 'View Purchase Orders',
+      group: 'Purchase Order Management',
+      sort: 2,
+    },
+    {
+      name: 'purchase_order:create',
+      displayName: 'Create Purchase Orders',
+      group: 'Purchase Order Management',
+      sort: 3,
+    },
+    {
+      name: 'purchase_order:update',
+      displayName: 'Update Purchase Orders',
+      group: 'Purchase Order Management',
+      sort: 4,
+    },
+    {
+      name: 'purchase_order:delete',
+      displayName: 'Delete Purchase Orders',
+      group: 'Purchase Order Management',
+      sort: 5,
+    },
+  ]);
+
+  // Sale Order Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'sale_order:all',
+      displayName: 'All Sale Order Permissions',
+      group: 'Sale Order Management',
+      sort: 1,
+    },
+    {
+      name: 'sale_order:view',
+      displayName: 'View Sale Orders',
+      group: 'Sale Order Management',
+      sort: 2,
+    },
+    {
+      name: 'sale_order:create',
+      displayName: 'Create Sale Orders',
+      group: 'Sale Order Management',
+      sort: 3,
+    },
+    {
+      name: 'sale_order:update',
+      displayName: 'Update Sale Orders',
+      group: 'Sale Order Management',
+      sort: 4,
+    },
+    {
+      name: 'sale_order:delete',
+      displayName: 'Delete Sale Orders',
+      group: 'Sale Order Management',
+      sort: 5,
+    },
+  ]);
+
+  // Purchase Invoice Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'purchase_invoice:all',
+      displayName: 'All Purchase Invoice Permissions',
+      group: 'Purchase Invoice Management',
+      sort: 1,
+    },
+    {
+      name: 'purchase_invoice:view',
+      displayName: 'View Purchase Invoices',
+      group: 'Purchase Invoice Management',
+      sort: 2,
+    },
+    {
+      name: 'purchase_invoice:create',
+      displayName: 'Create Purchase Invoices',
+      group: 'Purchase Invoice Management',
+      sort: 3,
+    },
+    {
+      name: 'purchase_invoice:update',
+      displayName: 'Update Purchase Invoices',
+      group: 'Purchase Invoice Management',
+      sort: 4,
+    },
+    {
+      name: 'purchase_invoice:delete',
+      displayName: 'Delete Purchase Invoices',
+      group: 'Purchase Invoice Management',
+      sort: 5,
+    },
+  ]);
+
+  // Sale Invoice Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'sale_invoice:all',
+      displayName: 'All Sale Invoice Permissions',
+      group: 'Sale Invoice Management',
+      sort: 1,
+    },
+    {
+      name: 'sale_invoice:view',
+      displayName: 'View Sale Invoices',
+      group: 'Sale Invoice Management',
+      sort: 2,
+    },
+    {
+      name: 'sale_invoice:create',
+      displayName: 'Create Sale Invoices',
+      group: 'Sale Invoice Management',
+      sort: 3,
+    },
+    {
+      name: 'sale_invoice:update',
+      displayName: 'Update Sale Invoices',
+      group: 'Sale Invoice Management',
+      sort: 4,
+    },
+    {
+      name: 'sale_invoice:delete',
+      displayName: 'Delete Sale Invoices',
+      group: 'Sale Invoice Management',
+      sort: 5,
+    },
+  ]);
+
   console.log('✅ Permissions seeded and updated by group');
 };

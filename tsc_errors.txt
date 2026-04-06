@@ -1,0 +1,24 @@
+src/modules/purchase_invoice/service/purchase_invoice.service.ts(64,13): error TS2769: No overload matches this call.
+  Overload 2 of 2, '(entityClass: EntityTarget<PurchaseInvoiceDetail>, plainObjects?: DeepPartial<PurchaseInvoiceDetail>[] | undefined): PurchaseInvoiceDetail[]', gave the following error.
+    Object literal may only specify known properties, and 'purchaseInvoiceId' does not exist in type 'DeepPartial<PurchaseInvoiceDetail>[]'.
+src/modules/purchase_invoice/service/purchase_invoice.service.ts(168,13): error TS2769: No overload matches this call.
+  Overload 2 of 2, '(entityClass: EntityTarget<PurchaseInvoiceDetail>, plainObjects?: DeepPartial<PurchaseInvoiceDetail>[] | undefined): PurchaseInvoiceDetail[]', gave the following error.
+    Object literal may only specify known properties, and 'purchaseInvoiceId' does not exist in type 'DeepPartial<PurchaseInvoiceDetail>[]'.
+src/modules/purchase_order/service/purchase_order.service.ts(58,13): error TS2769: No overload matches this call.
+  Overload 2 of 2, '(entityClass: EntityTarget<PurchaseOrderDetail>, plainObjects?: DeepPartial<PurchaseOrderDetail>[] | undefined): PurchaseOrderDetail[]', gave the following error.
+    Object literal may only specify known properties, and 'purchaseOrderId' does not exist in type 'DeepPartial<PurchaseOrderDetail>[]'.
+src/modules/purchase_order/service/purchase_order.service.ts(140,13): error TS2769: No overload matches this call.
+  Overload 2 of 2, '(entityClass: EntityTarget<PurchaseOrderDetail>, plainObjects?: DeepPartial<PurchaseOrderDetail>[] | undefined): PurchaseOrderDetail[]', gave the following error.
+    Object literal may only specify known properties, and 'purchaseOrderId' does not exist in type 'DeepPartial<PurchaseOrderDetail>[]'.
+src/modules/sale_invoice/service/sale_invoice.service.ts(64,13): error TS2769: No overload matches this call.
+  Overload 2 of 2, '(entityClass: EntityTarget<SaleInvoiceDetail>, plainObjects?: DeepPartial<SaleInvoiceDetail>[] | undefined): SaleInvoiceDetail[]', gave the following error.
+    Object literal may only specify known properties, and 'saleInvoiceId' does not exist in type 'DeepPartial<SaleInvoiceDetail>[]'.
+src/modules/sale_invoice/service/sale_invoice.service.ts(168,13): error TS2769: No overload matches this call.
+  Overload 2 of 2, '(entityClass: EntityTarget<SaleInvoiceDetail>, plainObjects?: DeepPartial<SaleInvoiceDetail>[] | undefined): SaleInvoiceDetail[]', gave the following error.
+    Object literal may only specify known properties, and 'saleInvoiceId' does not exist in type 'DeepPartial<SaleInvoiceDetail>[]'.
+src/modules/sale_order/service/sale_order.service.ts(58,13): error TS2769: No overload matches this call.
+  Overload 2 of 2, '(entityClass: EntityTarget<SaleOrderDetail>, plainObjects?: DeepPartial<SaleOrderDetail>[] | undefined): SaleOrderDetail[]', gave the following error.
+    Object literal may only specify known properties, and 'saleOrderId' does not exist in type 'DeepPartial<SaleOrderDetail>[]'.
+src/modules/sale_order/service/sale_order.service.ts(140,13): error TS2769: No overload matches this call.
+  Overload 2 of 2, '(entityClass: EntityTarget<SaleOrderDetail>, plainObjects?: DeepPartial<SaleOrderDetail>[] | undefined): SaleOrderDetail[]', gave the following error.
+    Object literal may only specify known properties, and 'saleOrderId' does not exist in type 'DeepPartial<SaleOrderDetail>[]'.
