@@ -80,6 +80,16 @@ export class UserController {
     );
   }
 
+  @Post('status-update')
+  @Permissions('user:update')
+  async updateStatus(
+    @Body() dto: { id: number; status: boolean },
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.userService.updateStatus(dto.id, dto.status, userId);
+    return ApiResponse.success(null, 'User status updated successfully');
+  }
+
   @Post('soft-delete')
   @Permissions('user:delete')
   async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {

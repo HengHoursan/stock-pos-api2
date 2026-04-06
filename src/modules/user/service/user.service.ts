@@ -77,7 +77,12 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-
+  async updateStatus(id: number, status: boolean, currentUserId: number | null = null): Promise<User> {
+    const user = await this.findOne(id);
+    user.status = status;
+    user.updatedBy = currentUserId;
+    return this.userRepository.save(user);
+  }
 
   async softDelete(id: number, currentUserId: number | null = null): Promise<void> {
     const user = await this.findOne(id);

@@ -15,4 +15,7 @@ export class UserResponse {
   @Expose()
   @Type(() => RoleResponse)
   role: RoleResponse;
+
+  @Expose()
+  status: boolean;
 }
