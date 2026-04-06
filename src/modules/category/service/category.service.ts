@@ -38,7 +38,7 @@ export class CategoryService {
     }
 
     const code = dto.code?.trim() || generateCode('CAT');
-    const slug = dto.slug?.trim() || slugify(dto.name);
+    const slug = dto.slug?.trim() ? slugify(dto.slug) : slugify(dto.name);
 
     const category = this.categoryRepository.create({
       ...dto,
@@ -87,13 +87,16 @@ export class CategoryService {
           `Category with name "${dto.name}" already exists`,
         );
       }
-      if (!dto.slug || dto.slug.trim() === '') {
-        dto.slug = slugify(dto.name);
-      }
     }
 
-    if (dto.slug !== undefined && dto.slug.trim() === '') {
-      dto.slug = slugify(category.name);
+    if (dto.slug !== undefined) {
+      if (dto.slug.trim() === '') {
+        dto.slug = slugify(dto.name || category.name);
+      } else {
+        dto.slug = slugify(dto.slug);
+      }
+    } else if (dto.name && dto.name !== category.name) {
+      dto.slug = slugify(dto.name);
     }
 
     if (dto.code !== undefined && dto.code.trim() === '') {

@@ -25,7 +25,7 @@ export class UnitService {
   ): Promise<Unit> {
     const name = dto.name;
     const code = dto.code?.trim() || generateCode('UNIT');
-    const slug = dto.slug?.trim() || slugify(name);
+    const slug = dto.slug?.trim() ? slugify(dto.slug) : slugify(name);
 
     // Check if name or code already exists
     const existingName = await this.unitRepository.findByName(name);
@@ -88,13 +88,16 @@ export class UnitService {
           `Unit with name "${dto.name}" already exists`,
         );
       }
-      if (!dto.slug || dto.slug.trim() === '') {
-        dto.slug = slugify(dto.name);
-      }
     }
 
-    if (dto.slug !== undefined && dto.slug.trim() === '') {
-      dto.slug = slugify(unit.name);
+    if (dto.slug !== undefined) {
+      if (dto.slug.trim() === '') {
+        dto.slug = slugify(dto.name || unit.name);
+      } else {
+        dto.slug = slugify(dto.slug);
+      }
+    } else if (dto.name && dto.name !== unit.name) {
+      dto.slug = slugify(dto.name);
     }
 
     if (dto.code !== undefined && dto.code.trim() === '') {

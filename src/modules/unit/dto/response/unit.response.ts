@@ -19,13 +19,13 @@ export class UnitResponse {
   @Expose()
   symbol: string;
 
-  @Expose({ name: 'conversion_factor' })
+  @Expose()
   conversionFactor: number;
 
-  @Expose({ name: 'default_price' })
+  @Expose()
   defaultPrice: number;
 
-  @Expose({ name: 'is_calculate_detail' })
+  @Expose()
   isCalculateDetail: boolean;
 
   @Expose()

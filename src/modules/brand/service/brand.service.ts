@@ -27,7 +27,7 @@ export class BrandService {
   ): Promise<Brand> {
     const name = dto.name;
     const code = dto.code?.trim() || generateCode('BRND');
-    const slug = dto.slug?.trim() || slugify(name);
+    const slug = dto.slug?.trim() ? slugify(dto.slug) : slugify(name);
 
     // Check if name or code already exists
     const existingName = await this.brandRepository.findByName(name);
@@ -90,13 +90,16 @@ export class BrandService {
           `Brand with name "${dto.name}" already exists`,
         );
       }
-      if (!dto.slug || dto.slug.trim() === '') {
-        dto.slug = slugify(dto.name);
-      }
     }
 
-    if (dto.slug !== undefined && dto.slug.trim() === '') {
-      dto.slug = slugify(brand.name);
+    if (dto.slug !== undefined) {
+      if (dto.slug.trim() === '') {
+        dto.slug = slugify(dto.name || brand.name);
+      } else {
+        dto.slug = slugify(dto.slug);
+      }
+    } else if (dto.name && dto.name !== brand.name) {
+      dto.slug = slugify(dto.name);
     }
 
     if (dto.code !== undefined && dto.code.trim() === '') {
