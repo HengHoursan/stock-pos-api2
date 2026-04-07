@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { PurchaseInvoiceRepository } from '../repository/purchase_invoice.repository';
+import { ProductRepository } from '../../product/repository/product.repository';
 import {
   CreatePurchaseInvoiceRequest,
   UpdatePurchaseInvoiceRequest,
@@ -14,16 +15,20 @@ import {
 import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { PurchaseInvoice } from '../entity/purchase_invoice.entity';
 import { PurchaseInvoiceDetail } from '../entity/purchase_invoice_detail.entity';
+import { ProductDetail } from '../../product/entity/product_detail.entity';
+import { Transaction } from '../../transaction/entity/transaction.entity';
 import { PurchaseOrder } from '../../purchase_order/entity/purchase_order.entity';
 import { InvoiceStatus } from '@/common/enum/invoice_status.enum';
 import { OrderStatus } from '@/common/enum/order_status.enum';
 import { PaymentMethod } from '@/common/enum/payment_method.enum';
+import { TransactionType } from '@/common/enum/transaction_type.enum';
 import { generateCode, DateConvertor } from '@/common/util/helper';
 
 @Injectable()
 export class PurchaseInvoiceService {
   constructor(
     private readonly purchaseInvoiceRepository: PurchaseInvoiceRepository,
+    private readonly productRepository: ProductRepository,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -75,6 +80,44 @@ export class PurchaseInvoiceService {
 
           if (item.purchaseOrderId) {
             purchaseOrderIds.add(item.purchaseOrderId);
+          }
+
+          // Stock & Transaction logic
+          const product = await this.productRepository.findOne({
+            where: { id: item.productId },
+            relations: ['detail'],
+          });
+
+          if (product && product.manageStock && product.detail) {
+            const beginningStock = Number(product.detail.currentStock);
+            const quantity = Number(item.quantity);
+            const afterStock = beginningStock + quantity;
+
+            // Update product detail stock
+            await manager.update(
+              ProductDetail,
+              { productId: item.productId },
+              {
+                currentStock: afterStock,
+                purchasePrice: item.totalPrice / item.quantity,
+                updatedBy: currentUserId,
+              },
+            );
+
+            // Create transaction record
+            const transaction = manager.create(Transaction, {
+              transactionCode: generateCode('TRX'),
+              transactionDate: DateConvertor(dto.invoiceDate) || new Date(),
+              transactionType: TransactionType.IN,
+              productId: item.productId,
+              beginningStock,
+              quantity,
+              afterStock,
+              remarks: `Purchase Invoice: ${code}`,
+              createdBy: currentUserId,
+              updatedBy: currentUserId,
+            });
+            await manager.save(Transaction, transaction);
           }
         }
       }
@@ -160,6 +203,43 @@ export class PurchaseInvoiceService {
       invoice.updatedBy = currentUserId;
 
       if (dto.details) {
+        // Reverse stock for old details
+        for (const oldDetail of invoice.details) {
+          const product = await this.productRepository.findOne({
+            where: { id: oldDetail.productId },
+            relations: ['detail'],
+          });
+
+          if (product && product.manageStock && product.detail) {
+            const currentStock = Number(product.detail.currentStock);
+            const reversedStock = currentStock - Number(oldDetail.quantity);
+
+            await manager.update(
+              ProductDetail,
+              { productId: oldDetail.productId },
+              {
+                currentStock: reversedStock,
+                updatedBy: currentUserId,
+              },
+            );
+
+            // Create reversal transaction
+            const reversalTrx = manager.create(Transaction, {
+              transactionCode: generateCode('TRX'),
+              transactionDate: new Date(),
+              transactionType: TransactionType.OUT,
+              productId: oldDetail.productId,
+              beginningStock: currentStock,
+              quantity: Number(oldDetail.quantity),
+              afterStock: reversedStock,
+              remarks: `Reversed - Purchase Invoice Update: ${invoice.code}`,
+              createdBy: currentUserId,
+              updatedBy: currentUserId,
+            });
+            await manager.save(Transaction, reversalTrx);
+          }
+        }
+
         await manager.delete(PurchaseInvoiceDetail, { purchaseInvoiceId: invoice.id });
 
         let totalPrice = 0;
@@ -176,6 +256,42 @@ export class PurchaseInvoiceService {
           });
           await manager.save(PurchaseInvoiceDetail, detail);
           totalPrice += Number(item.totalPrice);
+
+          // Re-apply stock for new details
+          const product = await this.productRepository.findOne({
+            where: { id: item.productId },
+            relations: ['detail'],
+          });
+
+          if (product && product.manageStock && product.detail) {
+            const beginningStock = Number(product.detail.currentStock);
+            const quantity = Number(item.quantity);
+            const afterStock = beginningStock + quantity;
+
+            await manager.update(
+              ProductDetail,
+              { productId: item.productId },
+              {
+                currentStock: afterStock,
+                purchasePrice: item.totalPrice / item.quantity,
+                updatedBy: currentUserId,
+              },
+            );
+
+            const transaction = manager.create(Transaction, {
+              transactionCode: generateCode('TRX'),
+              transactionDate: new Date(),
+              transactionType: TransactionType.IN,
+              productId: item.productId,
+              beginningStock,
+              quantity,
+              afterStock,
+              remarks: `Purchase Invoice Update: ${invoice.code}`,
+              createdBy: currentUserId,
+              updatedBy: currentUserId,
+            });
+            await manager.save(Transaction, transaction);
+          }
         }
 
         invoice.totalLine = dto.details.length;
@@ -217,6 +333,42 @@ export class PurchaseInvoiceService {
       invoice.isCancel = true;
       invoice.status = InvoiceStatus.CANCELLED;
       invoice.updatedBy = currentUserId;
+
+      // Reverse stock for cancelled invoice
+      for (const detail of invoice.details) {
+        const product = await this.productRepository.findOne({
+          where: { id: detail.productId },
+          relations: ['detail'],
+        });
+
+        if (product && product.manageStock && product.detail) {
+          const currentStock = Number(product.detail.currentStock);
+          const reversedStock = currentStock - Number(detail.quantity);
+
+          await manager.update(
+            ProductDetail,
+            { productId: detail.productId },
+            {
+              currentStock: reversedStock,
+              updatedBy: currentUserId,
+            },
+          );
+
+          const reversalTrx = manager.create(Transaction, {
+            transactionCode: generateCode('TRX'),
+            transactionDate: new Date(),
+            transactionType: TransactionType.OUT,
+            productId: detail.productId,
+            beginningStock: currentStock,
+            quantity: Number(detail.quantity),
+            afterStock: reversedStock,
+            remarks: `Cancelled - Purchase Invoice: ${invoice.code}`,
+            createdBy: currentUserId,
+            updatedBy: currentUserId,
+          });
+          await manager.save(Transaction, reversalTrx);
+        }
+      }
 
       // Reverse Purchase Order fulfillment
       const purchaseOrderIds = new Set<number>();
@@ -264,3 +416,4 @@ export class PurchaseInvoiceService {
     });
   }
 }
+

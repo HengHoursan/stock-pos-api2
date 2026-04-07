@@ -6,9 +6,13 @@ import { PurchaseInvoiceRepository } from './repository/purchase_invoice.reposit
 import { PurchaseInvoiceDetailRepository } from './repository/purchase_invoice_detail.repository';
 import { PurchaseInvoiceService } from './service/purchase_invoice.service';
 import { PurchaseInvoiceController } from './controller/purchase_invoice.controller';
+import { ProductModule } from '../product/product.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PurchaseInvoice, PurchaseInvoiceDetail])],
+  imports: [
+    TypeOrmModule.forFeature([PurchaseInvoice, PurchaseInvoiceDetail]),
+    ProductModule,
+  ],
   controllers: [PurchaseInvoiceController],
   providers: [
     PurchaseInvoiceService,
