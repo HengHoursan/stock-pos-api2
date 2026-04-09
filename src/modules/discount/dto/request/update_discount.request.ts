@@ -1,9 +1,27 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateDiscountRequest } from './create_discount.request';
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
-export class UpdateDiscountRequest extends PartialType(CreateDiscountRequest) {
+export class UpdateDiscountRequest {
   @IsNumber()
   @IsNotEmpty()
   id: number;
+
+  @IsString()
+  @IsOptional()
+  code?: string;
+
+  @IsString()
+  @IsOptional()
+  discountType?: string;
+
+  @IsNumber()
+  @IsOptional()
+  discountAmount?: number;
+
+  @IsString()
+  @IsOptional()
+  discountStartDate?: string;
+
+  @IsString()
+  @IsOptional()
+  discountEndDate?: string;
 }

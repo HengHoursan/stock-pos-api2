@@ -2,12 +2,12 @@ import { Controller, Post, Body } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from '@/common/security/decorator/current_user.decorator';
 import { Permissions } from '@/common/security/decorator/permissions.decorator';
-import { PurchaseQuotationService } from '../service/purchase_quotation.service';
+import { PurchaseQuotationService } from '@/purchase_quotation/service/purchase_quotation.service';
 import {
   CreatePurchaseQuotationRequest,
   UpdatePurchaseQuotationRequest,
   PurchaseQuotationResponse,
-} from '../dto';
+} from '@/purchase_quotation/dto';
 import {
   ApiResponse,
   PaginationRequest,

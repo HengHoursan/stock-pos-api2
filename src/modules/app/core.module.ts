@@ -20,6 +20,11 @@ import { PurchaseOrderModule } from '../purchase_order/purchase_order.module';
 import { SaleOrderModule } from '../sale_order/sale_order.module';
 import { PurchaseInvoiceModule } from '../purchase_invoice/purchase_invoice.module';
 import { SaleInvoiceModule } from '../sale_invoice/sale_invoice.module';
+import { PurchasePaymentModule } from '../purchase_payment/purchase_payment.module';
+import { PurchaseReturnModule } from '../purchase_return/purchase_return.module';
+import { SaleQuotationModule } from '../sale_quotation/sale_quotation.module';
+import { SalePaymentModule } from '../sale_payment/sale_payment.module';
+import { SaleReturnModule } from '../sale_return/sale_return.module';
 
 @Module({
   imports: [
@@ -44,6 +49,11 @@ import { SaleInvoiceModule } from '../sale_invoice/sale_invoice.module';
     SaleOrderModule,
     PurchaseInvoiceModule,
     SaleInvoiceModule,
+    PurchasePaymentModule,
+    PurchaseReturnModule,
+    SaleQuotationModule,
+    SalePaymentModule,
+    SaleReturnModule,
   ],
   exports: [
     UserModule,
@@ -67,6 +77,11 @@ import { SaleInvoiceModule } from '../sale_invoice/sale_invoice.module';
     SaleOrderModule,
     PurchaseInvoiceModule,
     SaleInvoiceModule,
+    PurchasePaymentModule,
+    PurchaseReturnModule,
+    SaleQuotationModule,
+    SalePaymentModule,
+    SaleReturnModule,
   ],
 })
 export class CoreModule {}

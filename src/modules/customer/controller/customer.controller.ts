@@ -2,13 +2,13 @@ import { Controller, Post, Body } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from '@/common/security/decorator/current_user.decorator';
 import { Permissions } from '@/common/security/decorator/permissions.decorator';
-import { CustomerService } from '../service/customer.service';
+import { CustomerService } from '@/customer/service/customer.service';
 import {
   CreateCustomerRequest,
   UpdateCustomerRequest,
   UpdateCustomerStatusRequest,
   CustomerResponse,
-} from '../dto';
+} from '@/customer/dto';
 import {
   ApiResponse,
   PaginationRequest,

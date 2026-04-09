@@ -2,13 +2,13 @@ import { Controller, Post, Body } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from '@/common/security/decorator/current_user.decorator';
 import { Permissions } from '@/common/security/decorator/permissions.decorator';
-import { PurchaseInvoiceService } from '../service/purchase_invoice.service';
+import { PurchaseInvoiceService } from '@/purchase_invoice/service/purchase_invoice.service';
 import {
   CreatePurchaseInvoiceRequest,
   UpdatePurchaseInvoiceRequest,
   UpdatePurchaseInvoiceStatusRequest,
   PurchaseInvoiceResponse,
-} from '../dto';
+} from '@/purchase_invoice/dto';
 import {
   ApiResponse,
   PaginationRequest,

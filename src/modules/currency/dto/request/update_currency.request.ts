@@ -1,9 +1,35 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateCurrencyRequest } from './create_currency.request';
-import { IsNumber, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsNumber } from 'class-validator';
 
-export class UpdateCurrencyRequest extends PartialType(CreateCurrencyRequest) {
+export class UpdateCurrencyRequest {
   @IsNumber()
   @IsNotEmpty()
   id: number;
+
+  @IsString()
+  @IsOptional()
+  code?: string;
+
+  @IsString()
+  @IsOptional()
+  country?: string;
+
+  @IsString()
+  @IsOptional()
+  currency?: string;
+
+  @IsString()
+  @IsOptional()
+  symbol?: string;
+
+  @IsString()
+  @IsOptional()
+  thousandSeparator?: string;
+
+  @IsString()
+  @IsOptional()
+  decimalSeparator?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  status?: boolean;
 }

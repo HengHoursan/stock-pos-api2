@@ -87,10 +87,10 @@ export class DiscountService {
 
     const updateData: any = { ...dto };
     if (dto.discountStartDate) {
-      updateData.discountStartDate = DateConvertor(dto.discountStartDate);
+      updateData.discountStartDate = DateConvertor(dto.discountStartDate) as Date;
     }
     if (dto.discountEndDate) {
-      updateData.discountEndDate = DateConvertor(dto.discountEndDate);
+      updateData.discountEndDate = DateConvertor(dto.discountEndDate) as Date;
     }
 
     Object.assign(discount, updateData);

@@ -3,10 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Discount } from './entity/discount.entity';
 import { DiscountService } from './service/discount.service';
 import { DiscountRepository } from './repository/discount.repository';
+import { DiscountController } from './controller/discount.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Discount])],
-  controllers: [],
+  controllers: [DiscountController],
   providers: [DiscountService, DiscountRepository],
   exports: [DiscountService, DiscountRepository],
 })

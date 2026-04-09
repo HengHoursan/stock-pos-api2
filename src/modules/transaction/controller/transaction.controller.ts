@@ -2,12 +2,12 @@ import { Controller, Post, Body } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from '@/common/security/decorator/current_user.decorator';
 import { Permissions } from '@/common/security/decorator/permissions.decorator';
-import { TransactionService } from '../service/transaction.service';
+import { TransactionService } from '@/transaction/service/transaction.service';
 import {
   CreateTransactionRequest,
   UpdateTransactionRequest,
   TransactionResponse,
-} from '../dto';
+} from '@/transaction/dto';
 import {
   PaginationRequest,
   ApiResponse,
@@ -26,8 +26,8 @@ export class TransactionController {
   ) {
     const transaction = await this.transactionService.create(dto, userId);
     return ApiResponse.success(
-        plainToInstance(TransactionResponse, transaction), 
-        'Transaction recorded successfully'
+      plainToInstance(TransactionResponse, transaction),
+      'Transaction recorded successfully',
     );
   }
 
@@ -60,8 +60,8 @@ export class TransactionController {
   ) {
     const transaction = await this.transactionService.update(dto, userId);
     return ApiResponse.success(
-        plainToInstance(TransactionResponse, transaction), 
-        'Transaction updated successfully'
+      plainToInstance(TransactionResponse, transaction),
+      'Transaction updated successfully',
     );
   }
 
