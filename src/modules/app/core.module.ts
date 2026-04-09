@@ -25,6 +25,8 @@ import { PurchaseReturnModule } from '../purchase_return/purchase_return.module'
 import { SaleQuotationModule } from '../sale_quotation/sale_quotation.module';
 import { SalePaymentModule } from '../sale_payment/sale_payment.module';
 import { SaleReturnModule } from '../sale_return/sale_return.module';
+import { CustomerModule } from '../customer/customer.module';
+import { SupplierModule } from '../supplier/supplier.module';
 
 @Module({
   imports: [
@@ -54,6 +56,8 @@ import { SaleReturnModule } from '../sale_return/sale_return.module';
     SaleQuotationModule,
     SalePaymentModule,
     SaleReturnModule,
+    CustomerModule,
+    SupplierModule,
   ],
   exports: [
     UserModule,
@@ -82,6 +86,8 @@ import { SaleReturnModule } from '../sale_return/sale_return.module';
     SaleQuotationModule,
     SalePaymentModule,
     SaleReturnModule,
+    CustomerModule,
+    SupplierModule,
   ],
 })
 export class CoreModule {}
