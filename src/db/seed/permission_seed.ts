@@ -28,7 +28,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'user:all',
-      displayName: 'All User Permissions',
+      displayName: 'All User',
       group: 'User Management',
       sort: 1,
     },
@@ -96,7 +96,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'permission:all',
-      displayName: 'All Permission Settings',
+      displayName: 'All Permission',
       group: 'Permission Management',
       sort: 1,
     },
@@ -158,7 +158,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'category:all',
-      displayName: 'All Category Permissions',
+      displayName: 'All Category',
       group: 'Category Management',
       sort: 1,
     },
@@ -192,7 +192,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'brand:all',
-      displayName: 'All Brand Permissions',
+      displayName: 'All Brand',
       group: 'Brand Management',
       sort: 1,
     },
@@ -226,7 +226,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'unit:all',
-      displayName: 'All Unit Permissions',
+      displayName: 'All Unit',
       group: 'Unit Management',
       sort: 1,
     },
@@ -260,7 +260,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'currency:all',
-      displayName: 'All Currency Permissions',
+      displayName: 'All Currency',
       group: 'Currency Management',
       sort: 1,
     },
@@ -294,7 +294,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'product:all',
-      displayName: 'All Product Permissions',
+      displayName: 'All Product',
       group: 'Product Management',
       sort: 1,
     },
@@ -340,7 +340,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'supplier:all',
-      displayName: 'All Supplier Permissions',
+      displayName: 'All Supplier',
       group: 'Supplier Management',
       sort: 1,
     },
@@ -374,7 +374,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'customer:all',
-      displayName: 'All Customer Permissions',
+      displayName: 'All Customer',
       group: 'Customer Management',
       sort: 1,
     },
@@ -407,7 +407,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'transaction:all',
-      displayName: 'All Transaction Permissions',
+      displayName: 'All Transaction',
       group: 'Transaction Management',
       sort: 1,
     },
@@ -441,7 +441,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'purchase_quotation:all',
-      displayName: 'All Purchase Quotation Permissions',
+      displayName: 'All Purchase Quotation',
       group: 'Purchase Quotation Management',
       sort: 1,
     },
@@ -475,7 +475,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'purchase_order:all',
-      displayName: 'All Purchase Order Permissions',
+      displayName: 'All Purchase Order',
       group: 'Purchase Order Management',
       sort: 1,
     },
@@ -509,7 +509,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'sale_order:all',
-      displayName: 'All Sale Order Permissions',
+      displayName: 'All Sale Order',
       group: 'Sale Order Management',
       sort: 1,
     },
@@ -543,7 +543,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'purchase_invoice:all',
-      displayName: 'All Purchase Invoice Permissions',
+      displayName: 'All Purchase Invoice',
       group: 'Purchase Invoice Management',
       sort: 1,
     },
@@ -577,7 +577,7 @@ export const seedPermissions = async (dataSource: DataSource) => {
   await seedPermissionsByGroup(dataSource, [
     {
       name: 'sale_invoice:all',
-      displayName: 'All Sale Invoice Permissions',
+      displayName: 'All Sale Invoice',
       group: 'Sale Invoice Management',
       sort: 1,
     },
@@ -603,6 +603,210 @@ export const seedPermissions = async (dataSource: DataSource) => {
       name: 'sale_invoice:delete',
       displayName: 'Delete Sale Invoices',
       group: 'Sale Invoice Management',
+      sort: 5,
+    },
+  ]);
+
+  // Sale Quotation Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'sale_quotation:all',
+      displayName: 'All Sale Quotation',
+      group: 'Sale Quotation Management',
+      sort: 1,
+    },
+    {
+      name: 'sale_quotation:view',
+      displayName: 'View Sale Quotations',
+      group: 'Sale Quotation Management',
+      sort: 2,
+    },
+    {
+      name: 'sale_quotation:create',
+      displayName: 'Create Sale Quotations',
+      group: 'Sale Quotation Management',
+      sort: 3,
+    },
+    {
+      name: 'sale_quotation:update',
+      displayName: 'Update Sale Quotations',
+      group: 'Sale Quotation Management',
+      sort: 4,
+    },
+    {
+      name: 'sale_quotation:delete',
+      displayName: 'Delete Sale Quotations',
+      group: 'Sale Quotation Management',
+      sort: 5,
+    },
+  ]);
+
+  // Sale Payment Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'sale_payment:all',
+      displayName: 'All Sale Payment',
+      group: 'Sale Payment Management',
+      sort: 1,
+    },
+    {
+      name: 'sale_payment:view',
+      displayName: 'View Sale Payments',
+      group: 'Sale Payment Management',
+      sort: 2,
+    },
+    {
+      name: 'sale_payment:create',
+      displayName: 'Create Sale Payments',
+      group: 'Sale Payment Management',
+      sort: 3,
+    },
+    {
+      name: 'sale_payment:update',
+      displayName: 'Update Sale Payments',
+      group: 'Sale Payment Management',
+      sort: 4,
+    },
+    {
+      name: 'sale_payment:delete',
+      displayName: 'Delete Sale Payments',
+      group: 'Sale Payment Management',
+      sort: 5,
+    },
+  ]);
+
+  // Sale Return Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'sale_return:all',
+      displayName: 'All Sale Return',
+      group: 'Sale Return Management',
+      sort: 1,
+    },
+    {
+      name: 'sale_return:view',
+      displayName: 'View Sale Returns',
+      group: 'Sale Return Management',
+      sort: 2,
+    },
+    {
+      name: 'sale_return:create',
+      displayName: 'Create Sale Returns',
+      group: 'Sale Return Management',
+      sort: 3,
+    },
+    {
+      name: 'sale_return:update',
+      displayName: 'Update Sale Returns',
+      group: 'Sale Return Management',
+      sort: 4,
+    },
+    {
+      name: 'sale_return:delete',
+      displayName: 'Delete Sale Returns',
+      group: 'Sale Return Management',
+      sort: 5,
+    },
+  ]);
+
+  // Purchase Payment Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'purchase_payment:all',
+      displayName: 'All Purchase Payment',
+      group: 'Purchase Payment Management',
+      sort: 1,
+    },
+    {
+      name: 'purchase_payment:view',
+      displayName: 'View Purchase Payments',
+      group: 'Purchase Payment Management',
+      sort: 2,
+    },
+    {
+      name: 'purchase_payment:create',
+      displayName: 'Create Purchase Payments',
+      group: 'Purchase Payment Management',
+      sort: 3,
+    },
+    {
+      name: 'purchase_payment:update',
+      displayName: 'Update Purchase Payments',
+      group: 'Purchase Payment Management',
+      sort: 4,
+    },
+    {
+      name: 'purchase_payment:delete',
+      displayName: 'Delete Purchase Payments',
+      group: 'Purchase Payment Management',
+      sort: 5,
+    },
+  ]);
+
+  // Purchase Return Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'purchase_return:all',
+      displayName: 'All Purchase Return',
+      group: 'Purchase Return Management',
+      sort: 1,
+    },
+    {
+      name: 'purchase_return:view',
+      displayName: 'View Purchase Returns',
+      group: 'Purchase Return Management',
+      sort: 2,
+    },
+    {
+      name: 'purchase_return:create',
+      displayName: 'Create Purchase Returns',
+      group: 'Purchase Return Management',
+      sort: 3,
+    },
+    {
+      name: 'purchase_return:update',
+      displayName: 'Update Purchase Returns',
+      group: 'Purchase Return Management',
+      sort: 4,
+    },
+    {
+      name: 'purchase_return:delete',
+      displayName: 'Delete Purchase Returns',
+      group: 'Purchase Return Management',
+      sort: 5,
+    },
+  ]);
+
+  // Discount Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'discount:all',
+      displayName: 'All Discount',
+      group: 'Discount Management',
+      sort: 1,
+    },
+    {
+      name: 'discount:view',
+      displayName: 'View Discounts',
+      group: 'Discount Management',
+      sort: 2,
+    },
+    {
+      name: 'discount:create',
+      displayName: 'Create Discounts',
+      group: 'Discount Management',
+      sort: 3,
+    },
+    {
+      name: 'discount:update',
+      displayName: 'Update Discounts',
+      group: 'Discount Management',
+      sort: 4,
+    },
+    {
+      name: 'discount:delete',
+      displayName: 'Delete Discounts',
+      group: 'Discount Management',
       sort: 5,
     },
   ]);
