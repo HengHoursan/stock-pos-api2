@@ -16,14 +16,23 @@ export class PurchasePaymentRepository extends Repository<PurchasePayment> {
   async findAllWithPagination(
     pagination: PaginationRequest,
   ): Promise<[PurchasePayment[], number]> {
-    const { page, limit, sortBy, sortOrder } = pagination;
+    const { page, limit, sortBy, sortOrder, search } = pagination;
 
     const queryBuilder = this.createQueryBuilder('purchase_payment')
       .leftJoinAndSelect('purchase_payment.supplier', 'supplier')
-      .leftJoinAndSelect('purchase_payment.details', 'details');
+      .leftJoinAndSelect('purchase_payment.details', 'details')
+      .leftJoinAndSelect('details.purchaseInvoice', 'purchaseInvoice');
+
+    if (search) {
+      queryBuilder.andWhere(
+        '(purchase_payment.code ILIKE :search OR supplier.name ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
 
     if (sortBy && sortOrder) {
-      queryBuilder.orderBy(`purchase_payment.${sortBy}`, sortOrder as 'ASC' | 'DESC');
+      const orderColumn = sortBy.includes('.') ? sortBy : `purchase_payment.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
     } else {
       queryBuilder.orderBy('purchase_payment.createdAt', 'DESC');
     }

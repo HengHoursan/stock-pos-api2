@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+import { SupplierResponse } from '@/supplier/dto';
 import { PurchasePaymentDetailResponse } from './purchase_payment_detail.response';
 
 export class PurchasePaymentResponse {
@@ -31,6 +32,10 @@ export class PurchasePaymentResponse {
 
   @Expose()
   updatedAt: Date;
+
+  @Expose()
+  @Type(() => SupplierResponse)
+  supplier: SupplierResponse;
 
   @Expose()
   @Type(() => PurchasePaymentDetailResponse)

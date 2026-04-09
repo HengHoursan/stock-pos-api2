@@ -16,15 +16,23 @@ export class SalePaymentRepository extends Repository<SalePayment> {
   async findAllWithPagination(
     pagination: PaginationRequest,
   ): Promise<[SalePayment[], number]> {
-    const { page, limit, sortBy, sortOrder } = pagination;
+    const { page, limit, sortBy, sortOrder, search } = pagination;
 
     const queryBuilder = this.createQueryBuilder('sale_payment')
       .leftJoinAndSelect('sale_payment.customer', 'customer')
       .leftJoinAndSelect('sale_payment.details', 'details')
       .leftJoinAndSelect('details.saleInvoice', 'saleInvoice');
 
+    if (search) {
+      queryBuilder.andWhere(
+        '(sale_payment.code ILIKE :search OR customer.name ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
     if (sortBy && sortOrder) {
-      queryBuilder.orderBy(`sale_payment.${sortBy}`, sortOrder as 'ASC' | 'DESC');
+      const orderColumn = sortBy.includes('.') ? sortBy : `sale_payment.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
     } else {
       queryBuilder.orderBy('sale_payment.createdAt', 'DESC');
     }

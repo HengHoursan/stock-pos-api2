@@ -1,5 +1,5 @@
-import { IsOptional, IsInt, Min, IsString, IsObject, Max } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsInt, Min, IsString, IsObject, Max, IsIn } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 export class PaginationRequest {
   @IsOptional()
@@ -19,9 +19,6 @@ export class PaginationRequest {
   @IsString()
   search?: string;
 
-  /**
-   * Filter as a key-value object (e.g. { "status": "active", "categoryId": "12" })
-   */
   @IsOptional()
   @IsObject()
   filter?: Record<string, string>;
@@ -32,5 +29,7 @@ export class PaginationRequest {
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value?.toUpperCase() || 'DESC')
+  @IsIn(['ASC', 'DESC'])
   sortOrder: 'ASC' | 'DESC' = 'DESC';
 }

@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+import { PurchaseInvoiceResponse } from '@/purchase_invoice/dto';
 
 export class PurchasePaymentDetailResponse {
   @Expose()
@@ -15,4 +16,8 @@ export class PurchasePaymentDetailResponse {
 
   @Expose()
   purchaseInvoiceDetailId: number | null;
+
+  @Expose()
+  @Type(() => PurchaseInvoiceResponse)
+  purchaseInvoice: PurchaseInvoiceResponse;
 }

@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+import { SupplierResponse } from '@/supplier/dto';
 import { PurchaseReturnDetailResponse } from './purchase_return_detail.response';
 import { InvoiceStatus } from '../../../../common/enum/invoice_status.enum';
 
@@ -35,6 +36,10 @@ export class PurchaseReturnResponse {
 
   @Expose()
   updatedAt: Date;
+
+  @Expose()
+  @Type(() => SupplierResponse)
+  supplier: SupplierResponse;
 
   @Expose()
   @Type(() => PurchaseReturnDetailResponse)

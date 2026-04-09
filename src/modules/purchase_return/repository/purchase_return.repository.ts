@@ -16,15 +16,23 @@ export class PurchaseReturnRepository extends Repository<PurchaseReturn> {
   async findAllWithPagination(
     pagination: PaginationRequest,
   ): Promise<[PurchaseReturn[], number]> {
-    const { page, limit, sortBy, sortOrder } = pagination;
+    const { page, limit, sortBy, sortOrder, search } = pagination;
 
     const queryBuilder = this.createQueryBuilder('purchase_return')
       .leftJoinAndSelect('purchase_return.supplier', 'supplier')
       .leftJoinAndSelect('purchase_return.details', 'details')
       .leftJoinAndSelect('details.product', 'product');
 
+    if (search) {
+      queryBuilder.andWhere(
+        '(purchase_return.code ILIKE :search OR supplier.name ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
     if (sortBy && sortOrder) {
-      queryBuilder.orderBy(`purchase_return.${sortBy}`, sortOrder as 'ASC' | 'DESC');
+      const orderColumn = sortBy.includes('.') ? sortBy : `purchase_return.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
     } else {
       queryBuilder.orderBy('purchase_return.createdAt', 'DESC');
     }

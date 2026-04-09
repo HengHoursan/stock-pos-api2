@@ -16,15 +16,23 @@ export class SaleQuotationRepository extends Repository<SaleQuotation> {
   async findAllWithPagination(
     pagination: PaginationRequest,
   ): Promise<[SaleQuotation[], number]> {
-    const { page, limit, sortBy, sortOrder } = pagination;
+    const { page, limit, sortBy, sortOrder, search } = pagination;
 
     const queryBuilder = this.createQueryBuilder('sale_quotation')
       .leftJoinAndSelect('sale_quotation.customer', 'customer')
       .leftJoinAndSelect('sale_quotation.details', 'details')
       .leftJoinAndSelect('details.product', 'product');
 
+    if (search) {
+      queryBuilder.andWhere(
+        '(sale_quotation.code ILIKE :search OR customer.name ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
     if (sortBy && sortOrder) {
-      queryBuilder.orderBy(`sale_quotation.${sortBy}`, sortOrder as 'ASC' | 'DESC');
+      const orderColumn = sortBy.includes('.') ? sortBy : `sale_quotation.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
     } else {
       queryBuilder.orderBy('sale_quotation.createdAt', 'DESC');
     }
