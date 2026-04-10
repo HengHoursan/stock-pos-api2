@@ -27,6 +27,7 @@ import { SalePaymentModule } from '../sale_payment/sale_payment.module';
 import { SaleReturnModule } from '../sale_return/sale_return.module';
 import { CustomerModule } from '../customer/customer.module';
 import { SupplierModule } from '../supplier/supplier.module';
+import { ReportModule } from '../report/report.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { SupplierModule } from '../supplier/supplier.module';
     SaleReturnModule,
     CustomerModule,
     SupplierModule,
+    ReportModule,
   ],
   exports: [
     UserModule,
@@ -88,6 +90,7 @@ import { SupplierModule } from '../supplier/supplier.module';
     SaleReturnModule,
     CustomerModule,
     SupplierModule,
+    ReportModule,
   ],
 })
 export class CoreModule {}

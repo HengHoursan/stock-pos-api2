@@ -18,33 +18,48 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
   ): Promise<[SaleOrder[], number]> {
     const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
-    let where: FindOptionsWhere<SaleOrder> | FindOptionsWhere<SaleOrder>[] = {};
-    const baseConditions: FindOptionsWhere<SaleOrder> = {};
+    const queryBuilder = this.createQueryBuilder('sale_order')
+      .leftJoinAndSelect('sale_order.customer', 'customer')
+      .leftJoinAndSelect('sale_order.details', 'details')
+      .leftJoinAndSelect('details.product', 'product');
 
+    // Handle Search
+    if (search && search.trim() !== '') {
+      queryBuilder.andWhere(
+        '(sale_order.code ILIKE :search OR customer.name ILIKE :search OR sale_order.description ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    // Handle Filters
     if (filter) {
       if (filter.status && filter.status !== 'all') {
-        baseConditions.status = Number(filter.status);
+        queryBuilder.andWhere('sale_order.status = :status', { status: Number(filter.status) });
       }
       if (filter.customerId) {
-        baseConditions.customerId = Number(filter.customerId);
+        queryBuilder.andWhere('sale_order.customerId = :customerId', { customerId: Number(filter.customerId) });
+      }
+      
+      // Business Date Range: orderDate
+      if (filter.startDate) {
+        queryBuilder.andWhere('sale_order.orderDate >= :startDate', { startDate: new Date(filter.startDate) });
+      }
+      if (filter.endDate) {
+        const endDate = new Date(filter.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        queryBuilder.andWhere('sale_order.orderDate <= :endDate', { endDate });
       }
     }
 
-    if (search && search.trim() !== '') {
-      where = [
-        { ...baseConditions, code: ILike(`%${search}%`) },
-        { ...baseConditions, description: ILike(`%${search}%`) },
-      ];
+    if (sortBy && sortOrder) {
+      const orderColumn = sortBy.includes('.') ? sortBy : `sale_order.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
     } else {
-      where = baseConditions;
+      queryBuilder.orderBy('sale_order.createdAt', 'DESC');
     }
 
-    return this.findAndCount({
-      where,
-      relations: ['customer', 'details', 'details.product'],
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { [sortBy]: sortOrder } as any,
-    });
+    queryBuilder.skip((page - 1) * limit).take(limit);
+
+    return queryBuilder.getManyAndCount();
   }
 }

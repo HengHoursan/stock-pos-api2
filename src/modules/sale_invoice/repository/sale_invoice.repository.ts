@@ -18,33 +18,48 @@ export class SaleInvoiceRepository extends Repository<SaleInvoice> {
   ): Promise<[SaleInvoice[], number]> {
     const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
-    let where: FindOptionsWhere<SaleInvoice> | FindOptionsWhere<SaleInvoice>[] = {};
-    const baseConditions: FindOptionsWhere<SaleInvoice> = {};
+    const queryBuilder = this.createQueryBuilder('sale_invoice')
+      .leftJoinAndSelect('sale_invoice.customer', 'customer')
+      .leftJoinAndSelect('sale_invoice.details', 'details')
+      .leftJoinAndSelect('details.product', 'product');
 
+    // Handle Search
+    if (search && search.trim() !== '') {
+      queryBuilder.andWhere(
+        '(sale_invoice.code ILIKE :search OR customer.name ILIKE :search OR sale_invoice.description ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    // Handle Filters
     if (filter) {
       if (filter.status && filter.status !== 'all') {
-        baseConditions.status = Number(filter.status);
+        queryBuilder.andWhere('sale_invoice.status = :status', { status: Number(filter.status) });
       }
       if (filter.customerId) {
-        baseConditions.customerId = Number(filter.customerId);
+        queryBuilder.andWhere('sale_invoice.customerId = :customerId', { customerId: Number(filter.customerId) });
+      }
+      
+      // Business Date Range: invoiceDate
+      if (filter.startDate) {
+        queryBuilder.andWhere('sale_invoice.invoiceDate >= :startDate', { startDate: new Date(filter.startDate) });
+      }
+      if (filter.endDate) {
+        const endDate = new Date(filter.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        queryBuilder.andWhere('sale_invoice.invoiceDate <= :endDate', { endDate });
       }
     }
 
-    if (search && search.trim() !== '') {
-      where = [
-        { ...baseConditions, code: ILike(`%${search}%`) },
-        { ...baseConditions, description: ILike(`%${search}%`) },
-      ];
+    if (sortBy && sortOrder) {
+      const orderColumn = sortBy.includes('.') ? sortBy : `sale_invoice.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
     } else {
-      where = baseConditions;
+      queryBuilder.orderBy('sale_invoice.createdAt', 'DESC');
     }
 
-    return this.findAndCount({
-      where,
-      relations: ['customer', 'details', 'details.product'],
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { [sortBy]: sortOrder } as any,
-    });
+    queryBuilder.skip((page - 1) * limit).take(limit);
+
+    return queryBuilder.getManyAndCount();
   }
 }

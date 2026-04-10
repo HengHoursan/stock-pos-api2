@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { PurchasePayment } from '../entity/purchase_payment.entity';
-import { PaginationRequest } from '../../../common/dto/request/pagination.request';
+import { PaginationRequest } from '@/common/dto';
 
 @Injectable()
 export class PurchasePaymentRepository extends Repository<PurchasePayment> {
@@ -16,18 +16,41 @@ export class PurchasePaymentRepository extends Repository<PurchasePayment> {
   async findAllWithPagination(
     pagination: PaginationRequest,
   ): Promise<[PurchasePayment[], number]> {
-    const { page, limit, sortBy, sortOrder, search } = pagination;
+    const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
     const queryBuilder = this.createQueryBuilder('purchase_payment')
       .leftJoinAndSelect('purchase_payment.supplier', 'supplier')
       .leftJoinAndSelect('purchase_payment.details', 'details')
       .leftJoinAndSelect('details.purchaseInvoice', 'purchaseInvoice');
 
-    if (search) {
+    // Handle Search
+    if (search && search.trim() !== '') {
       queryBuilder.andWhere(
-        '(purchase_payment.code ILIKE :search OR supplier.name ILIKE :search)',
+        '(purchase_payment.code ILIKE :search OR supplier.name ILIKE :search OR purchase_payment.description ILIKE :search)',
         { search: `%${search}%` },
       );
+    }
+
+    // Handle Filters
+    if (filter) {
+      if (filter.supplierId) {
+        queryBuilder.andWhere('purchase_payment.supplierId = :supplierId', { supplierId: Number(filter.supplierId) });
+      }
+      
+      // Business Date Range: paymentDate
+      if (filter.startDate) {
+        queryBuilder.andWhere('purchase_payment.paymentDate >= :startDate', { startDate: new Date(filter.startDate) });
+      }
+      if (filter.endDate) {
+        const endDate = new Date(filter.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        queryBuilder.andWhere('purchase_payment.paymentDate <= :endDate', { endDate });
+      }
+
+      // Filter by Invoice ID if provided
+      if (filter.purchaseInvoiceId) {
+        queryBuilder.andWhere('details.purchaseInvoiceId = :purchaseInvoiceId', { purchaseInvoiceId: Number(filter.purchaseInvoiceId) });
+      }
     }
 
     if (sortBy && sortOrder) {

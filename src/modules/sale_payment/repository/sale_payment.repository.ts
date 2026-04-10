@@ -16,18 +16,45 @@ export class SalePaymentRepository extends Repository<SalePayment> {
   async findAllWithPagination(
     pagination: PaginationRequest,
   ): Promise<[SalePayment[], number]> {
-    const { page, limit, sortBy, sortOrder, search } = pagination;
+    const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
     const queryBuilder = this.createQueryBuilder('sale_payment')
       .leftJoinAndSelect('sale_payment.customer', 'customer')
       .leftJoinAndSelect('sale_payment.details', 'details')
       .leftJoinAndSelect('details.saleInvoice', 'saleInvoice');
 
-    if (search) {
+    // Handle Search
+    if (search && search.trim() !== '') {
       queryBuilder.andWhere(
-        '(sale_payment.code ILIKE :search OR customer.name ILIKE :search)',
+        '(sale_payment.code ILIKE :search OR customer.name ILIKE :search OR sale_payment.description ILIKE :search)',
         { search: `%${search}%` },
       );
+    }
+
+    // Handle Filters
+    if (filter) {
+      if (filter.status && filter.status !== 'all') {
+        // SalePayment doesn't have status in entity yet, but we'll add logic for future proofing
+        // queryBuilder.andWhere('sale_payment.status = :status', { status: Number(filter.status) });
+      }
+      if (filter.customerId) {
+        queryBuilder.andWhere('sale_payment.customerId = :customerId', { customerId: Number(filter.customerId) });
+      }
+      
+      // Business Date Range: paymentDate
+      if (filter.startDate) {
+        queryBuilder.andWhere('sale_payment.paymentDate >= :startDate', { startDate: new Date(filter.startDate) });
+      }
+      if (filter.endDate) {
+        const endDate = new Date(filter.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        queryBuilder.andWhere('sale_payment.paymentDate <= :endDate', { endDate });
+      }
+
+      // Filter by Invoice ID if provided
+      if (filter.invoiceId) {
+        queryBuilder.andWhere('details.saleInvoiceId = :invoiceId', { invoiceId: Number(filter.invoiceId) });
+      }
     }
 
     if (sortBy && sortOrder) {

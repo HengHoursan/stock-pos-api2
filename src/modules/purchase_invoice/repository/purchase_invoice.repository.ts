@@ -18,33 +18,48 @@ export class PurchaseInvoiceRepository extends Repository<PurchaseInvoice> {
   ): Promise<[PurchaseInvoice[], number]> {
     const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
-    let where: FindOptionsWhere<PurchaseInvoice> | FindOptionsWhere<PurchaseInvoice>[] = {};
-    const baseConditions: FindOptionsWhere<PurchaseInvoice> = {};
+    const queryBuilder = this.createQueryBuilder('purchase_invoice')
+      .leftJoinAndSelect('purchase_invoice.supplier', 'supplier')
+      .leftJoinAndSelect('purchase_invoice.details', 'details')
+      .leftJoinAndSelect('details.product', 'product');
 
+    // Handle Search
+    if (search && search.trim() !== '') {
+      queryBuilder.andWhere(
+        '(purchase_invoice.code ILIKE :search OR supplier.name ILIKE :search OR purchase_invoice.description ILIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    // Handle Filters
     if (filter) {
       if (filter.status && filter.status !== 'all') {
-        baseConditions.status = Number(filter.status);
+        queryBuilder.andWhere('purchase_invoice.status = :status', { status: Number(filter.status) });
       }
       if (filter.supplierId) {
-        baseConditions.supplierId = Number(filter.supplierId);
+        queryBuilder.andWhere('purchase_invoice.supplierId = :supplierId', { supplierId: Number(filter.supplierId) });
+      }
+      
+      // Business Date Range: invoiceDate
+      if (filter.startDate) {
+        queryBuilder.andWhere('purchase_invoice.invoiceDate >= :startDate', { startDate: new Date(filter.startDate) });
+      }
+      if (filter.endDate) {
+        const endDate = new Date(filter.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        queryBuilder.andWhere('purchase_invoice.invoiceDate <= :endDate', { endDate });
       }
     }
 
-    if (search && search.trim() !== '') {
-      where = [
-        { ...baseConditions, code: ILike(`%${search}%`) },
-        { ...baseConditions, description: ILike(`%${search}%`) },
-      ];
+    if (sortBy && sortOrder) {
+      const orderColumn = sortBy.includes('.') ? sortBy : `purchase_invoice.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
     } else {
-      where = baseConditions;
+      queryBuilder.orderBy('purchase_invoice.createdAt', 'DESC');
     }
 
-    return this.findAndCount({
-      where,
-      relations: ['supplier', 'details', 'details.product'],
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { [sortBy]: sortOrder } as any,
-    });
+    queryBuilder.skip((page - 1) * limit).take(limit);
+
+    return queryBuilder.getManyAndCount();
   }
 }

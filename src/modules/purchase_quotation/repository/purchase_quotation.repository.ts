@@ -16,23 +16,42 @@ export class PurchaseQuotationRepository extends Repository<PurchaseQuotation> {
   async findAllWithPagination(
     pagination: PaginationRequest,
   ): Promise<[PurchaseQuotation[], number]> {
-    const { page, limit, sortBy, sortOrder, search } = pagination;
+    const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
-    let where: FindOptionsWhere<PurchaseQuotation> | FindOptionsWhere<PurchaseQuotation>[] = {};
+    const queryBuilder = this.createQueryBuilder('purchase_quotation')
+      .leftJoinAndSelect('purchase_quotation.details', 'details')
+      .leftJoinAndSelect('details.product', 'product');
 
+    // Handle Search
     if (search && search.trim() !== '') {
-      where = [
-        { code: ILike(`%${search}%`) },
-        { description: ILike(`%${search}%`) },
-      ];
+      queryBuilder.andWhere(
+        '(purchase_quotation.code ILIKE :search OR purchase_quotation.description ILIKE :search)',
+        { search: `%${search}%` },
+      );
     }
 
-    return this.findAndCount({
-      where,
-      relations: ['details', 'details.product'],
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { [sortBy]: sortOrder } as any,
-    });
+    // Handle Filters
+    if (filter) {
+      // quotationDate Range
+      if (filter.startDate) {
+        queryBuilder.andWhere('purchase_quotation.quotationDate >= :startDate', { startDate: new Date(filter.startDate) });
+      }
+      if (filter.endDate) {
+        const endDate = new Date(filter.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        queryBuilder.andWhere('purchase_quotation.quotationDate <= :endDate', { endDate });
+      }
+    }
+
+    if (sortBy && sortOrder) {
+      const orderColumn = sortBy.includes('.') ? sortBy : `purchase_quotation.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
+    } else {
+      queryBuilder.orderBy('purchase_quotation.createdAt', 'DESC');
+    }
+
+    queryBuilder.skip((page - 1) * limit).take(limit);
+
+    return queryBuilder.getManyAndCount();
   }
 }

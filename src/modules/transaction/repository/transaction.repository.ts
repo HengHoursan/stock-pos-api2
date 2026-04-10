@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { DataSource, Repository, ILike, FindOptionsWhere, EntityManager } from 'typeorm';
 import { Transaction } from '../entity/transaction.entity';
 import { PaginationRequest } from '@/common/dto';
-import { ProductDetail } from '../../product/entity/product_detail.entity';
+import { ProductDetail } from '@/product/entity/product_detail.entity';
 
 @Injectable()
 export class TransactionRepository extends Repository<Transaction> {

@@ -811,5 +811,51 @@ export const seedPermissions = async (dataSource: DataSource) => {
     },
   ]);
 
+  // Report Management
+  await seedPermissionsByGroup(dataSource, [
+    {
+      name: 'report:all',
+      displayName: 'All Report',
+      group: 'Report Management',
+      sort: 1,
+    },
+    {
+      name: 'report:view_dashboard',
+      displayName: 'View Dashboard Metrics',
+      group: 'Report Management',
+      sort: 2,
+    },
+    {
+      name: 'report:view_sales',
+      displayName: 'View Sales Report',
+      group: 'Report Management',
+      sort: 3,
+    },
+    {
+      name: 'report:view_purchases',
+      displayName: 'View Purchases Report',
+      group: 'Report Management',
+      sort: 4,
+    },
+    {
+      name: 'report:view_inventory',
+      displayName: 'View Inventory Report',
+      group: 'Report Management',
+      sort: 5,
+    },
+    {
+      name: 'report:view_profit_loss',
+      displayName: 'View Profit & Loss Report',
+      group: 'Report Management',
+      sort: 6,
+    },
+    {
+      name: 'report:view_top_performers',
+      displayName: 'View Top Performers Report',
+      group: 'Report Management',
+      sort: 7,
+    },
+  ]);
+
   console.log('✅ Permissions seeded and updated by group');
 };
