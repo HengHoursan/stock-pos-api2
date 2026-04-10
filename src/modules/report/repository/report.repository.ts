@@ -284,9 +284,9 @@ export class ReportRepository {
 
     const cogsQb = this.saleInvoiceRepo
       .createQueryBuilder('invoice')
-      .innerJoin('invoice.details', 'details')
-      .innerJoin('details.product', 'product')
-      .innerJoin('product.detail', 'productDetail')
+      .leftJoin('invoice.details', 'details')
+      .leftJoin('details.product', 'product')
+      .leftJoin('product.detail', 'productDetail')
       .select('SUM(details.quantity * productDetail.purchasePrice)', 'cogs')
       .where('invoice.status IN (:...statuses)', { statuses })
       .andWhere('invoice.isCancel = :isCancel', { isCancel: false });
@@ -356,7 +356,7 @@ export class ReportRepository {
 
     const qb = this.productRepo
       .createQueryBuilder('product')
-      .innerJoin('product.detail', 'detail')
+      .leftJoin('product.detail', 'detail')
       .select('SUM(detail.currentStock)', 'currentStockLevels')
       .addSelect(
         'SUM(detail.currentStock * detail.purchasePrice)',
@@ -370,7 +370,8 @@ export class ReportRepository {
 
     const lowStockQb = this.productRepo
       .createQueryBuilder('product')
-      .innerJoinAndSelect('product.detail', 'detail')
+      .leftJoin('product.detail', 'detail')
+      .addSelect('detail')
       .where('detail.currentStock <= product.alertQuantity')
       .andWhere('product.status = :status', { status: true })
       .andWhere('product.manageStock = :manage', { manage: true });
@@ -415,8 +416,8 @@ export class ReportRepository {
 
     const bestSellingQb = this.saleInvoiceRepo
       .createQueryBuilder('invoice')
-      .innerJoin('invoice.details', 'details')
-      .innerJoin('details.product', 'product')
+      .leftJoin('invoice.details', 'details')
+      .leftJoin('details.product', 'product')
       .select('product.name', 'productName')
       .addSelect('product.code', 'productCode')
       .addSelect('SUM(details.quantity)', 'totalSold')
@@ -454,7 +455,7 @@ export class ReportRepository {
 
     if (query.search) {
       topCustomersQb.andWhere(
-        '(customer.name ILIKE :search OR customer.phone ILIKE :search)',
+        '(customer.name ILIKE :search OR customer.phoneNumber ILIKE :search)',
         { search: `%${query.search}%` },
       );
     }
