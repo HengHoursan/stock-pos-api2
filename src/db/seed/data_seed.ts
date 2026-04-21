@@ -27,11 +27,14 @@ async function upsertByField<T extends { id?: number }>(
   fields: string[],
   data: Record<string, any>,
 ): Promise<T> {
-  // Try to find by any of the unique fields
   for (const field of fields) {
     if (data[field] !== undefined && data[field] !== null) {
       const existing = await repo.findOne({ where: { [field]: data[field] } });
-      if (existing) return existing;
+      if (existing) {
+        // Update existing record with new data
+        Object.assign(existing, data);
+        return repo.save(existing);
+      }
     }
   }
   return repo.save(repo.create(data));
@@ -122,10 +125,8 @@ const seedCurrencies = async (dataSource: DataSource) => {
   const repo = dataSource.getRepository(Currency);
 
   const currencies = [
-    { code: 'USD', country: 'United States', currency: 'US Dollar',        symbol: '$',  thousandSeparator: ',', decimalSeparator: '.', status: true },
-    { code: 'KHR', country: 'Cambodia',      currency: 'Cambodian Riel',   symbol: '៛', thousandSeparator: ',', decimalSeparator: '.', status: true },
-    { code: 'THB', country: 'Thailand',       currency: 'Thai Baht',        symbol: '฿',  thousandSeparator: ',', decimalSeparator: '.', status: true },
-    { code: 'VND', country: 'Vietnam',        currency: 'Vietnamese Dong',  symbol: '₫',  thousandSeparator: '.', decimalSeparator: ',', status: true },
+    { code: 'USD', country: 'United States', currency: 'US Dollar',        symbol: '$',  thousandSeparator: ',', decimalSeparator: '.', exchangeRate: 1, isDefault: true, status: true },
+    { code: 'KHR', country: 'Cambodia',      currency: 'Cambodian Riel',   symbol: '៛', thousandSeparator: ',', decimalSeparator: '.', exchangeRate: 4100, isDefault: false, status: true },
   ];
 
   const savedCurrencies: Currency[] = [];

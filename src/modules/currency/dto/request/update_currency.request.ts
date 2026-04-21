@@ -32,4 +32,12 @@ export class UpdateCurrencyRequest {
   @IsBoolean()
   @IsOptional()
   status?: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  exchangeRate?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  isDefault?: boolean;
 }

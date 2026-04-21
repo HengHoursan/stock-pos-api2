@@ -21,6 +21,12 @@ export class Currency extends SoftDeleteEntity {
   @Column({ name: 'decimal_separator', length: 5, default: '.' })
   decimalSeparator: string;
 
+  @Column({ name: 'exchange_rate', type: 'decimal', precision: 10, scale: 4, default: 1 })
+  exchangeRate: number;
+
+  @Column({ name: 'is_default', default: false })
+  isDefault: boolean;
+
   @Column({ default: true })
   status: boolean;
 }

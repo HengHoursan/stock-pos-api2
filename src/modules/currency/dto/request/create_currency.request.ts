@@ -28,4 +28,12 @@ export class CreateCurrencyRequest {
   @IsBoolean()
   @IsOptional()
   status: boolean = true;
+
+  @IsNotEmpty()
+  @IsOptional()
+  exchangeRate: number = 1;
+
+  @IsBoolean()
+  @IsOptional()
+  isDefault: boolean = false;
 }

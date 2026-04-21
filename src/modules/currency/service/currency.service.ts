@@ -19,6 +19,18 @@ export class CurrencyService {
     private readonly currencyRepository: CurrencyRepository,
   ) {}
 
+  private async resetDefaults(exceptId?: number): Promise<void> {
+    const query = this.currencyRepository.createQueryBuilder()
+      .update(Currency)
+      .set({ isDefault: false });
+    
+    if (exceptId) {
+      query.where('id != :exceptId', { exceptId });
+    }
+    
+    await query.execute();
+  }
+
   async create(
     dto: CreateCurrencyRequest,
     currentUserId: number | null = null,
@@ -36,7 +48,14 @@ export class CurrencyService {
       createdBy: currentUserId,
       updatedBy: currentUserId,
     });
-    return this.currencyRepository.save(currency);
+    
+    const saved = await this.currencyRepository.save(currency);
+    
+    if (dto.isDefault) {
+      await this.resetDefaults(saved.id);
+    }
+    
+    return saved;
   }
 
   async findAllWithPagination(
@@ -82,7 +101,13 @@ export class CurrencyService {
     Object.assign(currency, dto);
     currency.updatedBy = currentUserId;
 
-    return this.currencyRepository.save(currency);
+    const saved = await this.currencyRepository.save(currency);
+    
+    if (dto.isDefault) {
+      await this.resetDefaults(saved.id);
+    }
+    
+    return saved;
   }
 
   async updateStatus(
