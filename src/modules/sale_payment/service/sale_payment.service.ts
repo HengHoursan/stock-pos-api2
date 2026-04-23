@@ -73,7 +73,7 @@ export class SalePaymentService {
             await manager.save(SaleInvoice, invoice);
             
             // Automatic Status Update
-            await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(invoice);
+            await this.saleInvoiceRepository.autoHealStatus(invoice, manager);
 
             // Trigger Order Healing
             const invoiceDetails = await manager.createQueryBuilder('sale_invoice_details', 'sid')
@@ -166,7 +166,7 @@ export class SalePaymentService {
           await manager.save(SaleInvoice, invoice);
 
           // Re-evaluate status
-          await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(invoice);
+          await this.saleInvoiceRepository.autoHealStatus(invoice, manager);
         }
       }
 
@@ -200,7 +200,7 @@ export class SalePaymentService {
             await manager.save(SaleInvoice, invoice);
 
             // Re-evaluate status
-            await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(invoice);
+            await this.saleInvoiceRepository.autoHealStatus(invoice, manager);
 
             // Trigger Order Healing
             const invoiceDetails = await manager.createQueryBuilder('sale_invoice_details', 'sid')
@@ -258,7 +258,7 @@ export class SalePaymentService {
           await manager.save(SaleInvoice, invoice);
 
           // Re-evaluate status
-          await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(invoice);
+          await this.saleInvoiceRepository.autoHealStatus(invoice, manager);
 
           // Trigger Order Healing
           const invoiceDetails = await manager.createQueryBuilder('sale_invoice_details', 'sid')

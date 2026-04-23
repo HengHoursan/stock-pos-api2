@@ -83,19 +83,15 @@ export class SaleInvoiceService {
       await manager.save(SaleInvoice, savedInvoice);
 
       // Automatic Status Update
-      await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(savedInvoice);
+      await this.saleInvoiceRepository.autoHealStatus(savedInvoice, manager);
 
-      // Update Sale Order fulfillment
+      // Update Sale Order invoiced line counts
       for (const orderId of saleOrderIds) {
         const order = await manager.findOne(SaleOrder, { where: { id: orderId } });
         if (order) {
           const detailsForOrder = dto.details.filter(d => d.saleOrderId === orderId);
           order.totalCloseLine = (order.totalCloseLine || 0) + detailsForOrder.length;
-          if (order.totalCloseLine >= order.totalLine) {
-            order.status = OrderStatus.COMPLETED;
-          } else if (order.totalCloseLine > 0) {
-            order.status = OrderStatus.PARTIAL;
-          }
+          // Status updates are now handled by SalePaymentService when fully paid.
           order.updatedBy = currentUserId;
           await manager.save(SaleOrder, order);
         }
@@ -188,7 +184,7 @@ export class SaleInvoiceService {
       await manager.save(SaleInvoice, invoice);
 
       // Automatic Status Update
-      await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(invoice);
+      await this.saleInvoiceRepository.autoHealStatus(invoice, manager);
 
       return manager.findOne(SaleInvoice, {
         where: { id: invoice.id },

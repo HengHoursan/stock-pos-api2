@@ -81,7 +81,7 @@ export class PurchasePaymentService {
               await manager.save(PurchaseInvoice, invoice);
               
               // Automatic Status Update
-              await this.purchasePaymentRepository.manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(invoice);
+              await this.purchaseInvoiceRepository.autoHealStatus(invoice, this.purchasePaymentRepository.manager);
 
               // Trigger Order Healing
               const invoiceDetails = await manager.createQueryBuilder('purchase_invoice_details', 'pid')
@@ -180,7 +180,7 @@ export class PurchasePaymentService {
                await manager.save(PurchaseInvoice, invoice);
 
                // Re-evaluate status
-               await manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(invoice);
+               await this.purchaseInvoiceRepository.autoHealStatus(invoice, manager);
              }
           }
         }
@@ -208,7 +208,7 @@ export class PurchasePaymentService {
                await manager.save(PurchaseInvoice, invoice);
 
                // Re-evaluate status
-               await manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(invoice);
+               await this.purchaseInvoiceRepository.autoHealStatus(invoice, manager);
             }
           }
         }
@@ -243,7 +243,7 @@ export class PurchasePaymentService {
               await manager.save(PurchaseInvoice, invoice);
 
               // Re-evaluate status
-              await manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(invoice);
+              await this.purchaseInvoiceRepository.autoHealStatus(invoice, manager);
             }
          }
       }

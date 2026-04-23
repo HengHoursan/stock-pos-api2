@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository, ILike, FindOptionsWhere } from 'typeorm';
+import { DataSource, Repository, ILike, FindOptionsWhere, EntityManager } from 'typeorm';
 import { SaleInvoice } from '../entity/sale_invoice.entity';
 import { PaginationRequest } from '@/common/dto';
 import { InvoiceStatus } from '@/common/enum/invoice_status.enum';
@@ -67,8 +67,12 @@ export class SaleInvoiceRepository extends Repository<SaleInvoice> {
   /**
    * Automatically heals invoice status based on payment amount.
    */
-  async autoHealStatus(invoice: SaleInvoice): Promise<void> {
-    const currentInvoice = await this.manager.findOne(SaleInvoice, {
+  async autoHealStatus(
+    invoice: SaleInvoice,
+    manager?: EntityManager,
+  ): Promise<void> {
+    const mgr = manager || this.manager;
+    const currentInvoice = await mgr.findOne(SaleInvoice, {
       where: { id: invoice.id },
     });
 
@@ -89,7 +93,7 @@ export class SaleInvoiceRepository extends Repository<SaleInvoice> {
       }
     }
 
-    await this.manager.save(SaleInvoice, currentInvoice);
+    await mgr.save(SaleInvoice, currentInvoice);
     invoice.status = currentInvoice.status;
   }
 }

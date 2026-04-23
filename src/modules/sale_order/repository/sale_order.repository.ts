@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository, ILike, FindOptionsWhere } from 'typeorm';
+import { DataSource, Repository, ILike, FindOptionsWhere, EntityManager } from 'typeorm';
 import { SaleOrder } from '../entity/sale_order.entity';
 import { PaginationRequest } from '@/common/dto';
 import { OrderStatus } from '@/common/enum/order_status.enum';
@@ -76,22 +76,25 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
    * Automatically heals orphaned fulfillment links.
    * Scans for invoices that should belong to this order but are missing the link.
    */
-  async autoHealFulfillment(order: SaleOrder): Promise<void> {
+  async autoHealFulfillment(order: SaleOrder, manager?: EntityManager): Promise<void> {
+    const mgr = manager || this.manager;
     if (order.status === OrderStatus.COMPLETED || order.isCancel) return;
 
     const { SaleInvoiceDetail } =
       await import('../../sale_invoice/entity/sale_invoice_detail.entity.js');
+    const { SaleInvoice } = 
+      await import('../../sale_invoice/entity/sale_invoice.entity.js');
 
     for (const orderDetail of order.details) {
       // Check if already linked
-      const alreadyLinked = await this.manager.count(SaleInvoiceDetail, {
+      const alreadyLinked = await mgr.count(SaleInvoiceDetail, {
         where: { saleOrderDetailId: orderDetail.id },
       });
 
       if (alreadyLinked > 0) continue;
 
       // Try to find a match
-      const orphanedMatch = await this.manager
+      const orphanedMatch = await mgr
         .createQueryBuilder(SaleInvoiceDetail, 'sid')
         .innerJoinAndSelect('sid.saleInvoice', 'si')
         .where('sid.saleOrderId IS NULL')
@@ -110,17 +113,33 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
       if (orphanedMatch) {
         orphanedMatch.saleOrderId = order.id;
         orphanedMatch.saleOrderDetailId = orderDetail.id;
-        await this.manager.save(SaleInvoiceDetail, orphanedMatch);
+        await mgr.save(SaleInvoiceDetail, orphanedMatch);
         order.totalCloseLine = (order.totalCloseLine || 0) + 1;
       }
     }
 
+    // Determine Status based on payment of linked invoices
     if (order.totalCloseLine >= order.totalLine) {
-      order.status = OrderStatus.COMPLETED;
+      const linkedInvoices = await mgr
+        .createQueryBuilder(SaleInvoice, 'si')
+        .innerJoin('sale_invoice_details', 'sid', 'sid.sale_invoice_id = si.id')
+        .where('sid.sale_order_id = :orderId', { orderId: order.id })
+        .getMany();
+
+      // Only complete if there are invoices and all are COMPLETED
+      const allPaid = linkedInvoices.length > 0 && linkedInvoices.every(inv => inv.status === 3); // 3 = InvoiceStatus.COMPLETED
+      
+      if (allPaid) {
+        order.status = OrderStatus.COMPLETED;
+      } else {
+        order.status = OrderStatus.PARTIAL;
+      }
     } else if (order.totalCloseLine > 0) {
       order.status = OrderStatus.PARTIAL;
+    } else {
+      order.status = OrderStatus.PENDING;
     }
 
-    await this.manager.save(SaleOrder, order);
+    await mgr.save(SaleOrder, order);
   }
 }

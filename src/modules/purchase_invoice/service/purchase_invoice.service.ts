@@ -126,19 +126,15 @@ export class PurchaseInvoiceService {
       await manager.save(PurchaseInvoice, savedInvoice);
 
       // Automatic Status Update
-      await manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(savedInvoice);
+      await this.purchaseInvoiceRepository.autoHealStatus(savedInvoice, manager);
 
-      // Update Purchase Order fulfillment
+      // Update Purchase Order invoiced line counts
       for (const orderId of purchaseOrderIds) {
         const order = await manager.findOne(PurchaseOrder, { where: { id: orderId } });
         if (order) {
           const detailsForOrder = dto.details.filter(d => d.purchaseOrderId === orderId);
           order.totalCloseLine = (order.totalCloseLine || 0) + detailsForOrder.length;
-          if (order.totalCloseLine >= order.totalLine) {
-            order.status = OrderStatus.COMPLETED;
-          } else if (order.totalCloseLine > 0) {
-            order.status = OrderStatus.PARTIAL;
-          }
+          // Status updates are now handled by PurchasePaymentService when fully paid.
           order.updatedBy = currentUserId;
           await manager.save(PurchaseOrder, order);
         }
@@ -304,7 +300,7 @@ export class PurchaseInvoiceService {
       await manager.save(PurchaseInvoice, invoice);
 
       // Automatic Status Update
-      await manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(invoice);
+      await this.purchaseInvoiceRepository.autoHealStatus(invoice, manager);
 
       return manager.findOne(PurchaseInvoice, {
         where: { id: invoice.id },
