@@ -13,6 +13,7 @@ import {
   PaginationRequest,
   ApiResponse,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('categories')
@@ -52,8 +53,8 @@ export class CategoryController {
 
   @Post('detail')
   @Permissions('category:view')
-  async detail(@Body('id') id: number) {
-    const category = await this.categoryService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const category = await this.categoryService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(CategoryResponse, category),
       'Category detail retrieved successfully',
@@ -82,15 +83,15 @@ export class CategoryController {
 
   @Post('soft-delete')
   @Permissions('category:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.categoryService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.categoryService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Category deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('category:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.categoryService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.categoryService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Category deleted successfully');
   }
 }

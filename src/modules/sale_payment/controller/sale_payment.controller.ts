@@ -12,6 +12,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('sale-payments')
@@ -54,8 +55,8 @@ export class SalePaymentController {
 
   @Post('detail')
   @Permissions('sale_payment:view')
-  async detail(@Body('id') id: number) {
-    const payment = await this.salePaymentService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const payment = await this.salePaymentService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(SalePaymentResponse, payment),
       'Sale Payment detail retrieved successfully',
@@ -77,8 +78,8 @@ export class SalePaymentController {
 
   @Post('cancel')
   @Permissions('sale_payment:update')
-  async cancel(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    const result = await this.salePaymentService.cancel(id, userId);
+  async cancel(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const result = await this.salePaymentService.cancel(dto.id, userId);
     return ApiResponse.success(
       plainToInstance(SalePaymentResponse, result),
       'Sale Payment cancelled successfully',
@@ -87,8 +88,8 @@ export class SalePaymentController {
 
   @Post('force-delete')
   @Permissions('sale_payment:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.salePaymentService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.salePaymentService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Sale Payment permanently deleted');
   }
 }

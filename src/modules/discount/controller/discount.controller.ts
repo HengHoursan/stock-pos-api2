@@ -12,6 +12,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('discounts')
@@ -54,8 +55,8 @@ export class DiscountController {
 
   @Post('detail')
   @Permissions('discount:view')
-  async detail(@Body('id') id: number) {
-    const discount = await this.discountService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const discount = await this.discountService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(DiscountResponse, discount),
       'Discount detail retrieved successfully',
@@ -77,8 +78,8 @@ export class DiscountController {
 
   @Post('soft-delete')
   @Permissions('discount:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.discountService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.discountService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Discount soft deleted successfully');
   }
 }

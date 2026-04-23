@@ -13,6 +13,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('customers')
@@ -52,8 +53,8 @@ export class CustomerController {
 
   @Post('detail')
   @Permissions('customer:view')
-  async detail(@Body('id') id: number) {
-    const customer = await this.customerService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const customer = await this.customerService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(CustomerResponse, customer),
       'Customer detail retrieved successfully',
@@ -82,15 +83,15 @@ export class CustomerController {
 
   @Post('soft-delete')
   @Permissions('customer:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.customerService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.customerService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Customer soft deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('customer:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.customerService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.customerService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Customer permanently deleted');
   }
 }

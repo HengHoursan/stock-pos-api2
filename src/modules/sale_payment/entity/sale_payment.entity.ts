@@ -11,10 +11,22 @@ export class SalePayment extends SoftDeleteEntity {
   @Column({ name: 'customer_id' })
   customerId: number;
 
-  @Column({ name: 'total_price', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'total_price',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   totalPrice: number;
 
-  @Column({ name: 'paid_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'paid_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   paidAmount: number;
 
   @Column({ name: 'payment_date', type: 'timestamp' })
@@ -30,6 +42,8 @@ export class SalePayment extends SoftDeleteEntity {
   @JoinColumn({ name: 'customer_id' })
   customer: Customer;
 
-  @OneToMany(() => SalePaymentDetail, (detail) => detail.salePayment, { cascade: true })
+  @OneToMany(() => SalePaymentDetail, (detail) => detail.salePayment, {
+    cascade: true,
+  })
   details: SalePaymentDetail[];
 }

@@ -13,6 +13,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('currencies')
@@ -52,8 +53,8 @@ export class CurrencyController {
 
   @Post('detail')
   @Permissions('currency:view')
-  async detail(@Body('id') id: number) {
-    const currency = await this.currencyService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const currency = await this.currencyService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(CurrencyResponse, currency),
       'Currency detail retrieved successfully',
@@ -82,15 +83,15 @@ export class CurrencyController {
 
   @Post('soft-delete')
   @Permissions('currency:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.currencyService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.currencyService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Currency soft deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('currency:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.currencyService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.currencyService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Currency permanently deleted');
   }
 }

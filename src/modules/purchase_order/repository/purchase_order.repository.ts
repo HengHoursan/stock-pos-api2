@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource, Repository, ILike, FindOptionsWhere } from 'typeorm';
 import { PurchaseOrder } from '../entity/purchase_order.entity';
 import { PaginationRequest } from '@/common/dto';
+import { OrderStatus } from '@/common/enum/order_status.enum';
 
 @Injectable()
 export class PurchaseOrderRepository extends Repository<PurchaseOrder> {
@@ -61,5 +62,49 @@ export class PurchaseOrderRepository extends Repository<PurchaseOrder> {
     queryBuilder.skip((page - 1) * limit).take(limit);
 
     return queryBuilder.getManyAndCount();
+  }
+
+  /**
+   * Automatically heals orphaned fulfillment links.
+   * Scans for invoices that should belong to this order but are missing the link.
+   */
+  async autoHealFulfillment(order: PurchaseOrder): Promise<void> {
+    if (order.status === OrderStatus.COMPLETED || order.isCancel) return;
+
+    const { PurchaseInvoiceDetail } = await import('../../purchase_invoice/entity/purchase_invoice_detail.entity.js');
+
+    for (const orderDetail of order.details) {
+      // Check if already linked
+      const alreadyLinked = await this.manager.count(PurchaseInvoiceDetail, {
+        where: { purchaseOrderDetailId: orderDetail.id }
+      });
+
+      if (alreadyLinked > 0) continue;
+
+      // Try to find a match
+      const orphanedMatch = await this.manager.createQueryBuilder(PurchaseInvoiceDetail, 'pid')
+        .innerJoinAndSelect('pid.purchaseInvoice', 'pi')
+        .where('pid.purchaseOrderId IS NULL')
+        .andWhere('pi.supplierId = :supplierId', { supplierId: order.supplierId })
+        .andWhere('pid.productId = :productId', { productId: orderDetail.productId })
+        .andWhere('pid.quantity = :quantity', { quantity: orderDetail.quantity })
+        .andWhere('pi.createdAt >= :orderDate', { orderDate: order.createdAt })
+        .getOne();
+
+      if (orphanedMatch) {
+        orphanedMatch.purchaseOrderId = order.id;
+        orphanedMatch.purchaseOrderDetailId = orderDetail.id;
+        await this.manager.save(PurchaseInvoiceDetail, orphanedMatch);
+        order.totalCloseLine = (order.totalCloseLine || 0) + 1;
+      }
+    }
+
+    if (order.totalCloseLine >= order.totalLine) {
+      order.status = OrderStatus.COMPLETED;
+    } else if (order.totalCloseLine > 0) {
+      order.status = OrderStatus.PARTIAL;
+    }
+
+    await this.manager.save(PurchaseOrder, order);
   }
 }

@@ -85,6 +85,13 @@ export class PurchaseOrderService {
     const { page, limit, sortBy, sortOrder } = pagination;
     const [data, total] =
       await this.purchaseOrderRepository.findAllWithPagination(pagination);
+
+    for (const order of data) {
+      if (order.status !== OrderStatus.COMPLETED && !order.isCancel) {
+        await this.purchaseOrderRepository.autoHealFulfillment(order);
+      }
+    }
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -104,6 +111,11 @@ export class PurchaseOrderService {
     if (!order) {
       throw new NotFoundException(`Purchase Order with id ${id} not found`);
     }
+
+    if (order.status !== OrderStatus.COMPLETED && !order.isCancel) {
+      await this.purchaseOrderRepository.autoHealFulfillment(order);
+    }
+
     return order;
   }
 

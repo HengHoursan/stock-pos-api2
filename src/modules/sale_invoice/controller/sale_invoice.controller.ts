@@ -13,6 +13,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('sale-invoices')
@@ -55,8 +56,8 @@ export class SaleInvoiceController {
 
   @Post('detail')
   @Permissions('sale_invoice:view')
-  async detail(@Body('id') id: number) {
-    const result = await this.saleInvoiceService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const result = await this.saleInvoiceService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(SaleInvoiceResponse, result),
       'Sale Invoice detail retrieved successfully',
@@ -91,8 +92,8 @@ export class SaleInvoiceController {
 
   @Post('cancel')
   @Permissions('sale_invoice:update')
-  async cancel(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    const result = await this.saleInvoiceService.cancel(id, userId);
+  async cancel(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const result = await this.saleInvoiceService.cancel(dto.id, userId);
     return ApiResponse.success(
       plainToInstance(SaleInvoiceResponse, result),
       'Sale Invoice cancelled successfully',
@@ -101,15 +102,15 @@ export class SaleInvoiceController {
 
   @Post('soft-delete')
   @Permissions('sale_invoice:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.saleInvoiceService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.saleInvoiceService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Sale Invoice soft deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('sale_invoice:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.saleInvoiceService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.saleInvoiceService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Sale Invoice permanently deleted');
   }
 }

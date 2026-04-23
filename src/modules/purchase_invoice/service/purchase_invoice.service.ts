@@ -125,6 +125,9 @@ export class PurchaseInvoiceService {
       savedInvoice.totalPrice = totalPrice;
       await manager.save(PurchaseInvoice, savedInvoice);
 
+      // Automatic Status Update
+      await manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(savedInvoice);
+
       // Update Purchase Order fulfillment
       for (const orderId of purchaseOrderIds) {
         const order = await manager.findOne(PurchaseOrder, { where: { id: orderId } });
@@ -299,6 +302,9 @@ export class PurchaseInvoiceService {
       }
 
       await manager.save(PurchaseInvoice, invoice);
+
+      // Automatic Status Update
+      await manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(invoice);
 
       return manager.findOne(PurchaseInvoice, {
         where: { id: invoice.id },

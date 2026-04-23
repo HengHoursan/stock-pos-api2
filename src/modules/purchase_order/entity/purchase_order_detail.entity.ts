@@ -1,12 +1,12 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { BaseEntity } from '../../../common/entity/base.entity';
+import { SoftDeleteEntity } from '../../../common/entity/base.entity';
 import { PurchaseOrder } from './purchase_order.entity';
 import { Product } from '../../product/entity/product.entity';
 import { PurchaseQuotation } from '../../purchase_quotation/entity/purchase_quotation.entity';
 import { PurchaseQuotationDetail } from '../../purchase_quotation/entity/purchase_quotation_detail.entity';
 
 @Entity('purchase_order_details')
-export class PurchaseOrderDetail extends BaseEntity {
+export class PurchaseOrderDetail extends SoftDeleteEntity {
   @Column({ name: 'purchase_order_id' })
   purchaseOrderId: number;
 

@@ -8,6 +8,7 @@ import {
   PaginationRequest,
   ApiResponse,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('users')
@@ -59,8 +60,8 @@ export class UserController {
 
   @Post('detail')
   @Permissions('user:view')
-  async detail(@Body('id') id: number) {
-    const user = await this.userService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const user = await this.userService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(UserResponse, user),
       'User detail retrieved successfully',
@@ -92,15 +93,15 @@ export class UserController {
 
   @Post('soft-delete')
   @Permissions('user:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.userService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.userService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'User soft deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('user:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.userService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.userService.forceDelete(dto.id);
     return ApiResponse.success(null, 'User permanently deleted');
   }
 }

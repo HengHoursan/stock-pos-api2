@@ -13,6 +13,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('suppliers')
@@ -52,8 +53,8 @@ export class SupplierController {
 
   @Post('detail')
   @Permissions('supplier:view')
-  async detail(@Body('id') id: number) {
-    const supplier = await this.supplierService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const supplier = await this.supplierService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(SupplierResponse, supplier),
       'Supplier detail retrieved successfully',
@@ -82,15 +83,15 @@ export class SupplierController {
 
   @Post('soft-delete')
   @Permissions('supplier:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.supplierService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.supplierService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Supplier soft deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('supplier:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.supplierService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.supplierService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Supplier permanently deleted');
   }
 }

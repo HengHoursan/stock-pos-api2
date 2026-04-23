@@ -85,6 +85,14 @@ export class SaleOrderService {
     const { page, limit, sortBy, sortOrder } = pagination;
     const [data, total] =
       await this.saleOrderRepository.findAllWithPagination(pagination);
+
+    // Auto-heal pending orders found in the current page
+    for (const order of data) {
+      if (order.status !== OrderStatus.COMPLETED && !order.isCancel) {
+        await this.saleOrderRepository.autoHealFulfillment(order);
+      }
+    }
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -104,6 +112,11 @@ export class SaleOrderService {
     if (!order) {
       throw new NotFoundException(`Sale Order with id ${id} not found`);
     }
+
+    if (order.status !== OrderStatus.COMPLETED && !order.isCancel) {
+      await this.saleOrderRepository.autoHealFulfillment(order);
+    }
+
     return order;
   }
 

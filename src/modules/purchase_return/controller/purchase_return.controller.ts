@@ -13,6 +13,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('purchase-returns')
@@ -55,8 +56,8 @@ export class PurchaseReturnController {
 
   @Post('detail')
   @Permissions('purchase_return:view')
-  async detail(@Body('id') id: number) {
-    const purchaseReturn = await this.purchaseReturnService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const purchaseReturn = await this.purchaseReturnService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(PurchaseReturnResponse, purchaseReturn),
       'Purchase Return detail retrieved successfully',
@@ -91,8 +92,8 @@ export class PurchaseReturnController {
 
   @Post('cancel')
   @Permissions('purchase_return:update')
-  async cancel(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    const result = await this.purchaseReturnService.cancel(id, userId);
+  async cancel(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const result = await this.purchaseReturnService.cancel(dto.id, userId);
     return ApiResponse.success(
       plainToInstance(PurchaseReturnResponse, result),
       'Purchase Return cancelled successfully',
@@ -101,8 +102,8 @@ export class PurchaseReturnController {
 
   @Post('force-delete')
   @Permissions('purchase_return:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.purchaseReturnService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.purchaseReturnService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Purchase Return permanently deleted');
   }
 }

@@ -13,6 +13,7 @@ import {
   PaginationRequest,
   ApiResponse,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('products')
@@ -55,8 +56,8 @@ export class ProductController {
 
   @Post('detail')
   @Permissions('product:view')
-  async detail(@Body('id') id: number) {
-    const product = await this.productService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const product = await this.productService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(ProductResponse, product),
       'Product detail retrieved successfully',
@@ -88,15 +89,15 @@ export class ProductController {
 
   @Post('soft-delete')
   @Permissions('product:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.productService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.productService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Product deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('product:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.productService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.productService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Product deleted successfully');
   }
 }

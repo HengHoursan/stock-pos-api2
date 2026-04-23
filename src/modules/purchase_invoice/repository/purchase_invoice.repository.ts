@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource, Repository, ILike, FindOptionsWhere } from 'typeorm';
 import { PurchaseInvoice } from '../entity/purchase_invoice.entity';
 import { PaginationRequest } from '@/common/dto';
+import { InvoiceStatus } from '@/common/enum/invoice_status.enum';
 
 @Injectable()
 export class PurchaseInvoiceRepository extends Repository<PurchaseInvoice> {
@@ -61,5 +62,34 @@ export class PurchaseInvoiceRepository extends Repository<PurchaseInvoice> {
     queryBuilder.skip((page - 1) * limit).take(limit);
 
     return queryBuilder.getManyAndCount();
+  }
+
+  /**
+   * Automatically heals invoice status based on payment amount.
+   */
+  async autoHealStatus(invoice: PurchaseInvoice): Promise<void> {
+    const currentInvoice = await this.manager.findOne(PurchaseInvoice, {
+      where: { id: invoice.id },
+    });
+
+    if (!currentInvoice) return;
+
+    if (currentInvoice.isCancel) {
+      currentInvoice.status = InvoiceStatus.CANCELLED;
+    } else {
+      const paidAmount = Number(currentInvoice.paidAmount || 0);
+      const totalPrice = Number(currentInvoice.totalPrice || 0);
+
+      if (paidAmount >= totalPrice && totalPrice > 0) {
+        currentInvoice.status = InvoiceStatus.COMPLETED;
+      } else if (paidAmount > 0) {
+        currentInvoice.status = InvoiceStatus.CONFIRMED;
+      } else {
+        currentInvoice.status = InvoiceStatus.DRAFT;
+      }
+    }
+
+    await this.manager.save(PurchaseInvoice, currentInvoice);
+    invoice.status = currentInvoice.status;
   }
 }

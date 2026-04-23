@@ -13,6 +13,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('units')
@@ -52,8 +53,8 @@ export class UnitController {
 
   @Post('detail')
   @Permissions('unit:view')
-  async detail(@Body('id') id: number) {
-    const unit = await this.unitService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const unit = await this.unitService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(UnitResponse, unit),
       'Unit detail retrieved successfully',
@@ -82,15 +83,15 @@ export class UnitController {
 
   @Post('soft-delete')
   @Permissions('unit:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.unitService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.unitService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Unit soft deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('unit:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.unitService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.unitService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Unit permanently deleted');
   }
 }

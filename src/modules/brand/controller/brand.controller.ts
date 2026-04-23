@@ -13,6 +13,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('brands')
@@ -52,8 +53,8 @@ export class BrandController {
 
   @Post('detail')
   @Permissions('brand:view')
-  async detail(@Body('id') id: number) {
-    const brand = await this.brandService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const brand = await this.brandService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(BrandResponse, brand),
       'Brand detail retrieved successfully',
@@ -82,15 +83,15 @@ export class BrandController {
 
   @Post('soft-delete')
   @Permissions('brand:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.brandService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.brandService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Brand soft deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('brand:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.brandService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.brandService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Brand permanently deleted');
   }
 }

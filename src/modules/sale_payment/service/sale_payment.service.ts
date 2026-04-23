@@ -11,12 +11,17 @@ import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { SalePayment } from '@/sale_payment/entity/sale_payment.entity';
 import { SalePaymentDetail } from '@/sale_payment/entity/sale_payment_detail.entity';
 import { SaleInvoice } from '@/sale_invoice/entity/sale_invoice.entity';
+import { SaleOrderRepository } from '@/sale_order/repository/sale_order.repository';
+import { SaleOrder } from '@/sale_order/entity/sale_order.entity';
+import { SaleInvoiceRepository } from '@/sale_invoice/repository/sale_invoice.repository';
 import { generateCode, DateConvertor } from '@/common/util/helper';
 
 @Injectable()
 export class SalePaymentService {
   constructor(
     private readonly salePaymentRepository: SalePaymentRepository,
+    private readonly saleOrderRepository: SaleOrderRepository,
+    private readonly saleInvoiceRepository: SaleInvoiceRepository,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -63,8 +68,29 @@ export class SalePaymentService {
           });
           if (invoice) {
             invoice.paidAmount = Number(invoice.paidAmount) + Number(item.paidAmount);
+            
             invoice.updatedBy = currentUserId;
             await manager.save(SaleInvoice, invoice);
+            
+            // Automatic Status Update
+            await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(invoice);
+
+            // Trigger Order Healing
+            const invoiceDetails = await manager.createQueryBuilder('sale_invoice_details', 'sid')
+              .where('sid.sale_invoice_id = :invoiceId', { invoiceId: invoice.id })
+              .andWhere('sid.sale_order_id IS NOT NULL')
+              .getRawMany();
+
+            const orderIds = [...new Set(invoiceDetails.map(d => d.sale_order_id))];
+            for (const orderId of orderIds) {
+              const order = await manager.findOne(SaleOrder, { 
+                where: { id: orderId },
+                relations: ['details'] 
+              });
+              if (order) {
+                await this.saleOrderRepository.autoHealFulfillment(order);
+              }
+            }
           } else {
             throw new NotFoundException(`Sale Invoice with id ${item.saleInvoiceId} not found`);
           }
@@ -135,8 +161,12 @@ export class SalePaymentService {
         });
         if (invoice) {
           invoice.paidAmount = Number(invoice.paidAmount) - Number(oldDetail.paidAmount);
+          
           invoice.updatedBy = currentUserId;
           await manager.save(SaleInvoice, invoice);
+
+          // Re-evaluate status
+          await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(invoice);
         }
       }
 
@@ -165,8 +195,29 @@ export class SalePaymentService {
           });
           if (invoice) {
             invoice.paidAmount = Number(invoice.paidAmount) + Number(item.paidAmount);
+            
             invoice.updatedBy = currentUserId;
             await manager.save(SaleInvoice, invoice);
+
+            // Re-evaluate status
+            await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(invoice);
+
+            // Trigger Order Healing
+            const invoiceDetails = await manager.createQueryBuilder('sale_invoice_details', 'sid')
+              .where('sid.sale_invoice_id = :invoiceId', { invoiceId: invoice.id })
+              .andWhere('sid.sale_order_id IS NOT NULL')
+              .getRawMany();
+
+            const orderIds = [...new Set(invoiceDetails.map(d => d.sale_order_id))];
+            for (const orderId of orderIds) {
+              const order = await manager.findOne(SaleOrder, { 
+                where: { id: orderId },
+                relations: ['details'] 
+              });
+              if (order) {
+                await this.saleOrderRepository.autoHealFulfillment(order);
+              }
+            }
           }
         }
         payment.totalPrice = totalPaidAmount;
@@ -202,8 +253,29 @@ export class SalePaymentService {
         });
         if (invoice) {
           invoice.paidAmount = Number(invoice.paidAmount) - Number(detail.paidAmount);
+          
           invoice.updatedBy = currentUserId;
           await manager.save(SaleInvoice, invoice);
+
+          // Re-evaluate status
+          await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(invoice);
+
+          // Trigger Order Healing
+          const invoiceDetails = await manager.createQueryBuilder('sale_invoice_details', 'sid')
+            .where('sid.sale_invoice_id = :invoiceId', { invoiceId: invoice.id })
+            .andWhere('sid.sale_order_id IS NOT NULL')
+            .getRawMany();
+
+          const orderIds = [...new Set(invoiceDetails.map(d => d.sale_order_id))];
+          for (const orderId of orderIds) {
+            const order = await manager.findOne(SaleOrder, { 
+              where: { id: orderId },
+              relations: ['details'] 
+            });
+            if (order) {
+              await this.saleOrderRepository.autoHealFulfillment(order);
+            }
+          }
         }
       }
 

@@ -13,6 +13,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('sale-returns')
@@ -55,8 +56,8 @@ export class SaleReturnController {
 
   @Post('detail')
   @Permissions('sale_return:view')
-  async detail(@Body('id') id: number) {
-    const saleReturn = await this.saleReturnService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const saleReturn = await this.saleReturnService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(SaleReturnResponse, saleReturn),
       'Sale Return detail retrieved successfully',
@@ -91,8 +92,8 @@ export class SaleReturnController {
 
   @Post('cancel')
   @Permissions('sale_return:update')
-  async cancel(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    const result = await this.saleReturnService.cancel(id, userId);
+  async cancel(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const result = await this.saleReturnService.cancel(dto.id, userId);
     return ApiResponse.success(
       plainToInstance(SaleReturnResponse, result),
       'Sale Return cancelled successfully',
@@ -101,8 +102,8 @@ export class SaleReturnController {
 
   @Post('force-delete')
   @Permissions('sale_return:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.saleReturnService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.saleReturnService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Sale Return permanently deleted');
   }
 }

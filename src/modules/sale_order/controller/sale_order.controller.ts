@@ -13,6 +13,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('sale-orders')
@@ -55,8 +56,8 @@ export class SaleOrderController {
 
   @Post('detail')
   @Permissions('sale_order:view')
-  async detail(@Body('id') id: number) {
-    const result = await this.saleOrderService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const result = await this.saleOrderService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(SaleOrderResponse, result),
       'Sale Order detail retrieved successfully',
@@ -91,8 +92,8 @@ export class SaleOrderController {
 
   @Post('cancel')
   @Permissions('sale_order:update')
-  async cancel(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    const result = await this.saleOrderService.cancel(id, userId);
+  async cancel(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const result = await this.saleOrderService.cancel(dto.id, userId);
     return ApiResponse.success(
       plainToInstance(SaleOrderResponse, result),
       'Sale Order cancelled successfully',
@@ -101,15 +102,15 @@ export class SaleOrderController {
 
   @Post('soft-delete')
   @Permissions('sale_order:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.saleOrderService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.saleOrderService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Sale Order soft deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('sale_order:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.saleOrderService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.saleOrderService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Sale Order permanently deleted');
   }
 }

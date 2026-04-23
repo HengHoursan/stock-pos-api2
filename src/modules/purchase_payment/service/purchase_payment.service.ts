@@ -14,12 +14,17 @@ import {
 import { PaginationRequest, PaginationMeta } from '../../../common/dto';
 import { PurchasePayment } from '../entity/purchase_payment.entity';
 import { PurchasePaymentDetail } from '../entity/purchase_payment_detail.entity';
+import { PurchaseOrderRepository } from '@/purchase_order/repository/purchase_order.repository';
+import { PurchaseOrder } from '@/purchase_order/entity/purchase_order.entity';
+import { PurchaseInvoiceRepository } from '@/purchase_invoice/repository/purchase_invoice.repository';
 import { generateCode, DateConvertor } from '../../../common/util/helper';
 
 @Injectable()
 export class PurchasePaymentService {
   constructor(
     private readonly purchasePaymentRepository: PurchasePaymentRepository,
+    private readonly purchaseOrderRepository: PurchaseOrderRepository,
+    private readonly purchaseInvoiceRepository: PurchaseInvoiceRepository,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -71,8 +76,29 @@ export class PurchasePaymentService {
             const invoice = await manager.findOne(PurchaseInvoice, { where: { id: item.purchaseInvoiceId } });
             if (invoice) {
               invoice.paidAmount = Number(invoice.paidAmount || 0) + Number(item.totalPrice);
+              
               invoice.updatedBy = currentUserId;
               await manager.save(PurchaseInvoice, invoice);
+              
+              // Automatic Status Update
+              await this.purchasePaymentRepository.manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(invoice);
+
+              // Trigger Order Healing
+              const invoiceDetails = await manager.createQueryBuilder('purchase_invoice_details', 'pid')
+                .where('pid.purchase_invoice_id = :invoiceId', { invoiceId: invoice.id })
+                .andWhere('pid.purchase_order_id IS NOT NULL')
+                .getRawMany();
+
+              const orderIds = [...new Set(invoiceDetails.map(d => d.purchase_order_id))];
+              for (const orderId of orderIds) {
+                const order = await manager.findOne(PurchaseOrder, { 
+                  where: { id: orderId },
+                  relations: ['details'] 
+                });
+                if (order) {
+                  await this.purchaseOrderRepository.autoHealFulfillment(order);
+                }
+              }
             }
           }
         }
@@ -152,6 +178,9 @@ export class PurchasePaymentService {
                invoice.paidAmount = Math.max(0, Number(invoice.paidAmount) - Number(oldDetail.totalPrice));
                invoice.updatedBy = currentUserId;
                await manager.save(PurchaseInvoice, invoice);
+
+               // Re-evaluate status
+               await manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(invoice);
              }
           }
         }
@@ -177,6 +206,9 @@ export class PurchasePaymentService {
                invoice.paidAmount = Number(invoice.paidAmount || 0) + Number(item.totalPrice);
                invoice.updatedBy = currentUserId;
                await manager.save(PurchaseInvoice, invoice);
+
+               // Re-evaluate status
+               await manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(invoice);
             }
           }
         }
@@ -207,9 +239,11 @@ export class PurchasePaymentService {
          if (detail.purchaseInvoiceId) {
             const invoice = await manager.findOne(PurchaseInvoice, { where: { id: detail.purchaseInvoiceId } });
             if (invoice) {
-              invoice.paidAmount = Math.max(0, Number(invoice.paidAmount) - Number(detail.totalPrice));
               invoice.updatedBy = currentUserId;
               await manager.save(PurchaseInvoice, invoice);
+
+              // Re-evaluate status
+              await manager.withRepository(this.purchaseInvoiceRepository).autoHealStatus(invoice);
             }
          }
       }

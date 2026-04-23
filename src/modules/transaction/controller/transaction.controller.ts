@@ -12,6 +12,7 @@ import {
   PaginationRequest,
   ApiResponse,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('transactions')
@@ -44,8 +45,8 @@ export class TransactionController {
 
   @Post('detail')
   @Permissions('transaction:view')
-  async detail(@Body('id') id: number) {
-    const transaction = await this.transactionService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const transaction = await this.transactionService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(TransactionResponse, transaction),
       'Transaction detail retrieved successfully',
@@ -67,8 +68,8 @@ export class TransactionController {
 
   @Post('soft-delete')
   @Permissions('transaction:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.transactionService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.transactionService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Transaction deleted successfully');
   }
 }

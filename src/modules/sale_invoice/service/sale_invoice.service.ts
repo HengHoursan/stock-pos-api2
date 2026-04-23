@@ -82,6 +82,9 @@ export class SaleInvoiceService {
       savedInvoice.totalPrice = totalPrice;
       await manager.save(SaleInvoice, savedInvoice);
 
+      // Automatic Status Update
+      await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(savedInvoice);
+
       // Update Sale Order fulfillment
       for (const orderId of saleOrderIds) {
         const order = await manager.findOne(SaleOrder, { where: { id: orderId } });
@@ -183,6 +186,9 @@ export class SaleInvoiceService {
       }
 
       await manager.save(SaleInvoice, invoice);
+
+      // Automatic Status Update
+      await manager.withRepository(this.saleInvoiceRepository).autoHealStatus(invoice);
 
       return manager.findOne(SaleInvoice, {
         where: { id: invoice.id },

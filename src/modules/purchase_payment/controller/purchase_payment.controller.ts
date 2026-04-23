@@ -12,6 +12,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('purchase-payments')
@@ -54,8 +55,8 @@ export class PurchasePaymentController {
 
   @Post('detail')
   @Permissions('purchase_payment:view')
-  async detail(@Body('id') id: number) {
-    const payment = await this.purchasePaymentService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const payment = await this.purchasePaymentService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(PurchasePaymentResponse, payment),
       'Purchase Payment detail retrieved successfully',
@@ -77,8 +78,8 @@ export class PurchasePaymentController {
 
   @Post('cancel')
   @Permissions('purchase_payment:update')
-  async cancel(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    const result = await this.purchasePaymentService.cancel(id, userId);
+  async cancel(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const result = await this.purchasePaymentService.cancel(dto.id, userId);
     return ApiResponse.success(
       plainToInstance(PurchasePaymentResponse, result),
       'Purchase Payment cancelled successfully',
@@ -87,8 +88,8 @@ export class PurchasePaymentController {
 
   @Post('force-delete')
   @Permissions('purchase_payment:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.purchasePaymentService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.purchasePaymentService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Purchase Payment permanently deleted');
   }
 }

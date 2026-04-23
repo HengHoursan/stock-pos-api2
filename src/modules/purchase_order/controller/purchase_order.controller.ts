@@ -13,6 +13,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('purchase-orders')
@@ -55,8 +56,8 @@ export class PurchaseOrderController {
 
   @Post('detail')
   @Permissions('purchase_order:view')
-  async detail(@Body('id') id: number) {
-    const result = await this.purchaseOrderService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const result = await this.purchaseOrderService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(PurchaseOrderResponse, result),
       'Purchase Order detail retrieved successfully',
@@ -91,8 +92,8 @@ export class PurchaseOrderController {
 
   @Post('cancel')
   @Permissions('purchase_order:update')
-  async cancel(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    const result = await this.purchaseOrderService.cancel(id, userId);
+  async cancel(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const result = await this.purchaseOrderService.cancel(dto.id, userId);
     return ApiResponse.success(
       plainToInstance(PurchaseOrderResponse, result),
       'Purchase Order cancelled successfully',
@@ -101,15 +102,15 @@ export class PurchaseOrderController {
 
   @Post('soft-delete')
   @Permissions('purchase_order:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.purchaseOrderService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.purchaseOrderService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Purchase Order soft deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('purchase_order:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.purchaseOrderService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.purchaseOrderService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Purchase Order permanently deleted');
   }
 }

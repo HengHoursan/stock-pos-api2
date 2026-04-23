@@ -12,6 +12,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('sale-quotations')
@@ -54,8 +55,8 @@ export class SaleQuotationController {
 
   @Post('detail')
   @Permissions('sale_quotation:view')
-  async detail(@Body('id') id: number) {
-    const quotation = await this.saleQuotationService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const quotation = await this.saleQuotationService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(SaleQuotationResponse, quotation),
       'Sale Quotation detail retrieved successfully',
@@ -77,15 +78,15 @@ export class SaleQuotationController {
 
   @Post('soft-delete')
   @Permissions('sale_quotation:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.saleQuotationService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.saleQuotationService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Sale Quotation soft deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('sale_quotation:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.saleQuotationService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.saleQuotationService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Sale Quotation permanently deleted');
   }
 }

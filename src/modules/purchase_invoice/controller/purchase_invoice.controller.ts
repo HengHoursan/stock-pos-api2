@@ -13,6 +13,7 @@ import {
   ApiResponse,
   PaginationRequest,
   PaginationResponse,
+  IdRequest,
 } from '@/common/dto';
 
 @Controller('purchase-invoices')
@@ -55,8 +56,8 @@ export class PurchaseInvoiceController {
 
   @Post('detail')
   @Permissions('purchase_invoice:view')
-  async detail(@Body('id') id: number) {
-    const result = await this.purchaseInvoiceService.findOne(id);
+  async detail(@Body() dto: IdRequest) {
+    const result = await this.purchaseInvoiceService.findOne(dto.id);
     return ApiResponse.success(
       plainToInstance(PurchaseInvoiceResponse, result),
       'Purchase Invoice detail retrieved successfully',
@@ -91,8 +92,8 @@ export class PurchaseInvoiceController {
 
   @Post('cancel')
   @Permissions('purchase_invoice:update')
-  async cancel(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    const result = await this.purchaseInvoiceService.cancel(id, userId);
+  async cancel(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const result = await this.purchaseInvoiceService.cancel(dto.id, userId);
     return ApiResponse.success(
       plainToInstance(PurchaseInvoiceResponse, result),
       'Purchase Invoice cancelled successfully',
@@ -101,15 +102,15 @@ export class PurchaseInvoiceController {
 
   @Post('soft-delete')
   @Permissions('purchase_invoice:delete')
-  async softDelete(@Body('id') id: number, @CurrentUser('id') userId: number) {
-    await this.purchaseInvoiceService.softDelete(id, userId);
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.purchaseInvoiceService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Purchase Invoice soft deleted successfully');
   }
 
   @Post('force-delete')
   @Permissions('purchase_invoice:delete')
-  async forceDelete(@Body('id') id: number) {
-    await this.purchaseInvoiceService.forceDelete(id);
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.purchaseInvoiceService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Purchase Invoice permanently deleted');
   }
 }
