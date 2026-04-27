@@ -142,7 +142,7 @@ export class PurchaseInvoiceService {
 
       return manager.findOne(PurchaseInvoice, {
         where: { id: savedInvoice.id },
-        relations: ['supplier', 'details', 'details.product'],
+        relations: ['supplier', 'details', 'details.product', 'details.purchaseOrder'],
       }) as Promise<PurchaseInvoice>;
     });
   }
@@ -167,7 +167,7 @@ export class PurchaseInvoiceService {
   async findOne(id: number): Promise<PurchaseInvoice> {
     const invoice = await this.purchaseInvoiceRepository.findOne({
       where: { id },
-      relations: ['supplier', 'details', 'details.product'],
+      relations: ['supplier', 'details', 'details.product', 'details.purchaseOrder'],
     });
     if (!invoice) {
       throw new NotFoundException(`Purchase Invoice with id ${id} not found`);
@@ -304,7 +304,7 @@ export class PurchaseInvoiceService {
 
       return manager.findOne(PurchaseInvoice, {
         where: { id: invoice.id },
-        relations: ['supplier', 'details', 'details.product'],
+        relations: ['supplier', 'details', 'details.product', 'details.purchaseOrder'],
       }) as Promise<PurchaseInvoice>;
     });
   }

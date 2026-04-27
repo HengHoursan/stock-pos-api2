@@ -4,7 +4,7 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, In } from 'typeorm';
 import { SaleOrderRepository } from '../repository/sale_order.repository';
 import {
   CreateSaleOrderRequest,
@@ -116,6 +116,19 @@ export class SaleOrderService {
     if (order.status !== OrderStatus.COMPLETED && !order.isCancel) {
       await this.saleOrderRepository.autoHealFulfillment(order);
     }
+
+    // Mark items that are already invoiced
+    const { SaleInvoiceDetail } = await import('../../sale_invoice/entity/sale_invoice_detail.entity.js');
+    const linkedInvoiceDetails = await this.dataSource.manager.find(SaleInvoiceDetail, {
+      where: { saleOrderDetailId: In(order.details.map(d => d.id)) }
+    });
+    
+    const invoicedDetailIds = new Set(linkedInvoiceDetails.map(lid => lid.saleOrderDetailId));
+    
+    order.details = order.details.map(detail => ({
+      ...detail,
+      isInvoiced: invoicedDetailIds.has(detail.id)
+    })) as any;
 
     return order;
   }

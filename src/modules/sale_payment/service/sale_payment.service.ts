@@ -128,7 +128,13 @@ export class SalePaymentService {
   async findOne(id: number): Promise<SalePayment> {
     const payment = await this.salePaymentRepository.findOne({
       where: { id },
-      relations: ['customer', 'details', 'details.saleInvoice'],
+      relations: [
+        'customer', 
+        'details', 
+        'details.saleInvoice', 
+        'details.saleInvoice.details', 
+        'details.saleInvoice.details.product'
+      ],
     });
     if (!payment) {
       throw new NotFoundException(`Sale Payment with id ${id} not found`);

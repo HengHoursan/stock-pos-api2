@@ -22,7 +22,8 @@ export class SaleInvoiceRepository extends Repository<SaleInvoice> {
     const queryBuilder = this.createQueryBuilder('sale_invoice')
       .leftJoinAndSelect('sale_invoice.customer', 'customer')
       .leftJoinAndSelect('sale_invoice.details', 'details')
-      .leftJoinAndSelect('details.product', 'product');
+      .leftJoinAndSelect('details.product', 'product')
+      .leftJoinAndSelect('details.saleOrder', 'saleOrder');
 
     // Handle Search
     if (search && search.trim() !== '') {

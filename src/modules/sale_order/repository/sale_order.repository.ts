@@ -78,22 +78,36 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
    */
   async autoHealFulfillment(order: SaleOrder, manager?: EntityManager): Promise<void> {
     const mgr = manager || this.manager;
-    if (order.status === OrderStatus.COMPLETED || order.isCancel) return;
+    if (order.isCancel) return;
 
     const { SaleInvoiceDetail } =
       await import('../../sale_invoice/entity/sale_invoice_detail.entity.js');
     const { SaleInvoice } = 
       await import('../../sale_invoice/entity/sale_invoice.entity.js');
 
+    order.totalLine = order.details?.length || 0;
+    order.totalCloseLine = 0;
+
     for (const orderDetail of order.details) {
-      // Check if already linked
-      const alreadyLinked = await mgr.count(SaleInvoiceDetail, {
-        where: { saleOrderDetailId: orderDetail.id },
-      });
+      // Calculate total invoiced quantity for this order detail
+      const result = await mgr
+        .createQueryBuilder(SaleInvoiceDetail, 'sid')
+        .select('SUM(sid.quantity)', 'totalInvoiced')
+        .where('sid.sale_order_detail_id = :detailId', { detailId: orderDetail.id })
+        .getRawOne();
 
-      if (alreadyLinked > 0) continue;
+      const totalInvoiced = Number(result?.totalInvoiced || 0);
 
-      // Try to find a match
+      // If already fully invoiced, count as closed
+      if (totalInvoiced >= Number(orderDetail.quantity)) {
+        order.totalCloseLine = (order.totalCloseLine || 0) + 1;
+        continue;
+      }
+
+      // If not fully invoiced, try to find an orphaned match (legacy support)
+      // but only if the remaining quantity matches exactly (simple healer logic)
+      const remainingQty = Number(orderDetail.quantity) - totalInvoiced;
+      
       const orphanedMatch = await mgr
         .createQueryBuilder(SaleInvoiceDetail, 'sid')
         .innerJoinAndSelect('sid.saleInvoice', 'si')
@@ -105,7 +119,7 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
           productId: orderDetail.productId,
         })
         .andWhere('sid.quantity = :quantity', {
-          quantity: orderDetail.quantity,
+          quantity: remainingQty,
         })
         .andWhere('si.createdAt >= :orderDate', { orderDate: order.createdAt })
         .getOne();
@@ -127,7 +141,7 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
         .getMany();
 
       // Only complete if there are invoices and all are COMPLETED
-      const allPaid = linkedInvoices.length > 0 && linkedInvoices.every(inv => inv.status === 3); // 3 = InvoiceStatus.COMPLETED
+      const allPaid = linkedInvoices.length > 0 && linkedInvoices.every(inv => Number(inv.status) === 3); // 3 = InvoiceStatus.COMPLETED
       
       if (allPaid) {
         order.status = OrderStatus.COMPLETED;

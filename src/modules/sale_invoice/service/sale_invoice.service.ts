@@ -124,7 +124,7 @@ export class SaleInvoiceService {
   async findOne(id: number): Promise<SaleInvoice> {
     const invoice = await this.saleInvoiceRepository.findOne({
       where: { id },
-      relations: ['customer', 'details', 'details.product'],
+      relations: ['customer', 'details', 'details.product', 'details.saleOrder'],
     });
     if (!invoice) {
       throw new NotFoundException(`Sale Invoice with id ${id} not found`);
@@ -188,7 +188,7 @@ export class SaleInvoiceService {
 
       return manager.findOne(SaleInvoice, {
         where: { id: invoice.id },
-        relations: ['customer', 'details', 'details.product'],
+        relations: ['customer', 'details', 'details.product', 'details.saleOrder'],
       }) as Promise<SaleInvoice>;
     });
   }

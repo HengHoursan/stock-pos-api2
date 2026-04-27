@@ -1,4 +1,5 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { ProductResponse } from '@/product/dto';
 
 export class SaleInvoiceDetailResponse {
   @Expose()
@@ -21,4 +22,8 @@ export class SaleInvoiceDetailResponse {
 
   @Expose()
   saleOrderDetailId: number;
+
+  @Expose()
+  @Type(() => ProductResponse)
+  product: ProductResponse;
 }

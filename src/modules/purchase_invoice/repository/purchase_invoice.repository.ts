@@ -22,7 +22,8 @@ export class PurchaseInvoiceRepository extends Repository<PurchaseInvoice> {
     const queryBuilder = this.createQueryBuilder('purchase_invoice')
       .leftJoinAndSelect('purchase_invoice.supplier', 'supplier')
       .leftJoinAndSelect('purchase_invoice.details', 'details')
-      .leftJoinAndSelect('details.product', 'product');
+      .leftJoinAndSelect('details.product', 'product')
+      .leftJoinAndSelect('details.purchaseOrder', 'purchaseOrder');
 
     // Handle Search
     if (search && search.trim() !== '') {
