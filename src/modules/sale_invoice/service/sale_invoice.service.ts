@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { SaleInvoiceRepository } from '../repository/sale_invoice.repository';
+import { StockService, LowStockWarning } from '../../product/service/stock.service';
+import { Product } from '../../product/entity/product.entity';
 import {
   CreateSaleInvoiceRequest,
   UpdateSaleInvoiceRequest,
@@ -20,17 +22,23 @@ import { OrderStatus } from '@/common/enum/order_status.enum';
 import { PaymentMethod } from '@/common/enum/payment_method.enum';
 import { generateCode, DateConvertor } from '@/common/util/helper';
 
+export interface SaleInvoiceCreateResult {
+  invoice: SaleInvoice;
+  lowStockWarnings: LowStockWarning[];
+}
+
 @Injectable()
 export class SaleInvoiceService {
   constructor(
     private readonly saleInvoiceRepository: SaleInvoiceRepository,
+    private readonly stockService: StockService,
     private readonly dataSource: DataSource,
   ) {}
 
   async create(
     dto: CreateSaleInvoiceRequest,
     currentUserId: number | null = null,
-  ): Promise<SaleInvoice> {
+  ): Promise<SaleInvoiceCreateResult> {
     const code = dto.code?.trim() || generateCode('SINV');
 
     const existingCode = await this.saleInvoiceRepository.findByCode(code);
@@ -57,6 +65,7 @@ export class SaleInvoiceService {
 
       let totalPrice = 0;
       const saleOrderIds = new Set<number>();
+      const lowStockWarnings: LowStockWarning[] = [];
 
       if (dto.details && dto.details.length > 0) {
         for (const item of dto.details) {
@@ -73,6 +82,28 @@ export class SaleInvoiceService {
           await manager.save(SaleInvoiceDetail, detail);
           totalPrice += Number(item.totalPrice);
 
+          // Stock OUT — throws BadRequestException if insufficient
+          const { isLowStock, afterStock } = await this.stockService.adjustStock(
+            manager,
+            item.productId,
+            item.quantity,
+            'OUT',
+            `Sale Invoice: ${code}`,
+            currentUserId,
+            DateConvertor(dto.invoiceDate) || new Date(),
+          );
+
+          if (isLowStock) {
+            const prod = await manager.findOne(Product, { where: { id: item.productId } });
+            lowStockWarnings.push({
+              productId: item.productId,
+              productCode: prod?.code ?? '',
+              productName: prod?.name ?? '',
+              afterStock,
+              alertQuantity: Number(prod?.alertQuantity ?? 0),
+            });
+          }
+
           if (item.saleOrderId) {
             saleOrderIds.add(item.saleOrderId);
           }
@@ -82,25 +113,24 @@ export class SaleInvoiceService {
       savedInvoice.totalPrice = totalPrice;
       await manager.save(SaleInvoice, savedInvoice);
 
-      // Automatic Status Update
       await this.saleInvoiceRepository.autoHealStatus(savedInvoice, manager);
 
-      // Update Sale Order invoiced line counts
       for (const orderId of saleOrderIds) {
         const order = await manager.findOne(SaleOrder, { where: { id: orderId } });
         if (order) {
           const detailsForOrder = dto.details.filter(d => d.saleOrderId === orderId);
           order.totalCloseLine = (order.totalCloseLine || 0) + detailsForOrder.length;
-          // Status updates are now handled by SalePaymentService when fully paid.
           order.updatedBy = currentUserId;
           await manager.save(SaleOrder, order);
         }
       }
 
-      return manager.findOne(SaleInvoice, {
+      const result = await manager.findOne(SaleInvoice, {
         where: { id: savedInvoice.id },
         relations: ['customer', 'details', 'details.product'],
-      }) as Promise<SaleInvoice>;
+      }) as SaleInvoice;
+
+      return { invoice: result, lowStockWarnings };
     });
   }
 
@@ -135,7 +165,7 @@ export class SaleInvoiceService {
   async update(
     dto: UpdateSaleInvoiceRequest,
     currentUserId: number | null = null,
-  ): Promise<SaleInvoice> {
+  ): Promise<SaleInvoiceCreateResult> {
     const invoice = await this.findOne(dto.id);
 
     if (invoice.status !== InvoiceStatus.DRAFT) {
@@ -158,7 +188,21 @@ export class SaleInvoiceService {
       if (dto.paymentMethod !== undefined) invoice.paymentMethod = dto.paymentMethod;
       invoice.updatedBy = currentUserId;
 
+      const lowStockWarnings: LowStockWarning[] = [];
+
       if (dto.details) {
+        // Reverse stock for old details (IN — undo the original OUT)
+        for (const oldDetail of invoice.details) {
+          await this.stockService.adjustStock(
+            manager,
+            oldDetail.productId,
+            oldDetail.quantity,
+            'IN',
+            `Reversed - Sale Invoice Update: ${invoice.code}`,
+            currentUserId,
+          );
+        }
+
         await manager.delete(SaleInvoiceDetail, { saleInvoiceId: invoice.id });
 
         let totalPrice = 0;
@@ -175,6 +219,28 @@ export class SaleInvoiceService {
           });
           await manager.save(SaleInvoiceDetail, detail);
           totalPrice += Number(item.totalPrice);
+
+          // Stock OUT for new details — throws if insufficient
+          const { isLowStock, afterStock } = await this.stockService.adjustStock(
+            manager,
+            item.productId,
+            item.quantity,
+            'OUT',
+            `Sale Invoice Update: ${invoice.code}`,
+            currentUserId,
+            (dto.invoiceDate ? DateConvertor(dto.invoiceDate) : null) ?? invoice.invoiceDate,
+          );
+
+          if (isLowStock) {
+            const prod = await manager.findOne(Product, { where: { id: item.productId } });
+            lowStockWarnings.push({
+              productId: item.productId,
+              productCode: prod?.code ?? '',
+              productName: prod?.name ?? '',
+              afterStock,
+              alertQuantity: Number(prod?.alertQuantity ?? 0),
+            });
+          }
         }
 
         invoice.totalLine = dto.details.length;
@@ -182,14 +248,14 @@ export class SaleInvoiceService {
       }
 
       await manager.save(SaleInvoice, invoice);
-
-      // Automatic Status Update
       await this.saleInvoiceRepository.autoHealStatus(invoice, manager);
 
-      return manager.findOne(SaleInvoice, {
+      const updated = await manager.findOne(SaleInvoice, {
         where: { id: invoice.id },
         relations: ['customer', 'details', 'details.product', 'details.saleOrder'],
-      }) as Promise<SaleInvoice>;
+      }) as SaleInvoice;
+
+      return { invoice: updated, lowStockWarnings };
     });
   }
 
@@ -220,12 +286,22 @@ export class SaleInvoiceService {
       invoice.status = InvoiceStatus.CANCELLED;
       invoice.updatedBy = currentUserId;
 
-      // Reverse Sale Order fulfillment
+      // Restore stock for each detail (IN — undo the original sale OUT)
+      for (const detail of invoice.details) {
+        await this.stockService.adjustStock(
+          manager,
+          detail.productId,
+          detail.quantity,
+          'IN',
+          `Cancelled - Sale Invoice: ${invoice.code}`,
+          currentUserId,
+        );
+      }
+
+      // Reverse Sale Order fulfillment counts
       const saleOrderIds = new Set<number>();
       for (const detail of invoice.details) {
-        if (detail.saleOrderId) {
-          saleOrderIds.add(detail.saleOrderId);
-        }
+        if (detail.saleOrderId) saleOrderIds.add(detail.saleOrderId);
       }
 
       for (const orderId of saleOrderIds) {
@@ -259,7 +335,7 @@ export class SaleInvoiceService {
   }
 
   async forceDelete(id: number): Promise<void> {
-    const invoice = await this.findOne(id);
+    await this.findOne(id);
     await this.dataSource.transaction(async (manager) => {
       await manager.delete(SaleInvoiceDetail, { saleInvoiceId: id });
       await manager.delete(SaleInvoice, id);

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { PurchaseReturnRepository } from '../repository/purchase_return.repository';
-import { ProductRepository } from '../../product/repository/product.repository';
+import { StockService } from '../../product/service/stock.service';
 import {
   CreatePurchaseReturnRequest,
   UpdatePurchaseReturnRequest,
@@ -15,18 +15,14 @@ import {
 import { PaginationRequest, PaginationMeta } from '../../../common/dto';
 import { PurchaseReturn } from '../entity/purchase_return.entity';
 import { PurchaseReturnDetail } from '../entity/purchase_return_detail.entity';
-import { ProductDetail } from '../../product/entity/product_detail.entity';
-import { Transaction } from '../../transaction/entity/transaction.entity';
-import { PurchaseInvoice } from '../../purchase_invoice/entity/purchase_invoice.entity';
 import { InvoiceStatus } from '../../../common/enum/invoice_status.enum';
-import { TransactionType } from '../../../common/enum/transaction_type.enum';
 import { generateCode, DateConvertor } from '../../../common/util/helper';
 
 @Injectable()
 export class PurchaseReturnService {
   constructor(
     private readonly purchaseReturnRepository: PurchaseReturnRepository,
-    private readonly productRepository: ProductRepository,
+    private readonly stockService: StockService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -73,42 +69,16 @@ export class PurchaseReturnService {
           await manager.save(PurchaseReturnDetail, detail);
           totalPrice += Number(item.totalPrice);
 
-          // Stock & Transaction logic (Returning stock to supplier means OUT)
-          const product = await this.productRepository.findOne({
-            where: { id: item.productId },
-            relations: ['detail'],
-          });
-
-          if (product && product.manageStock && product.detail) {
-            const beginningStock = Number(product.detail.currentStock);
-            const quantity = Number(item.quantity);
-            const afterStock = Math.max(0, beginningStock - quantity); // Prevent negative stock
-
-            // Update product detail stock
-            await manager.update(
-              ProductDetail,
-              { productId: item.productId },
-              {
-                currentStock: afterStock,
-                updatedBy: currentUserId,
-              },
-            );
-
-            // Create transaction record
-            const transaction = manager.create(Transaction, {
-              transactionCode: generateCode('TRX'),
-              transactionDate: DateConvertor(dto.returnDate) || new Date(),
-              transactionType: TransactionType.OUT, // STOCK OUT because it goes back to supplier
-              productId: item.productId,
-              beginningStock,
-              quantity,
-              afterStock,
-              remarks: `Purchase Return: ${code}`,
-              createdBy: currentUserId,
-              updatedBy: currentUserId,
-            });
-            await manager.save(Transaction, transaction);
-          }
+          // Stock OUT — returning goods to supplier reduces stock
+          await this.stockService.adjustStock(
+            manager,
+            item.productId,
+            item.quantity,
+            'OUT',
+            `Purchase Return: ${code}`,
+            currentUserId,
+            DateConvertor(dto.returnDate) || new Date(),
+          );
         }
       }
 
@@ -174,41 +144,16 @@ export class PurchaseReturnService {
       purchaseReturn.updatedBy = currentUserId;
 
       if (dto.details) {
-        // Reverse stock for old return details (Meaning STOCK IN)
+        // Reverse stock for old return details (STOCK IN)
         for (const oldDetail of purchaseReturn.details) {
-          const product = await this.productRepository.findOne({
-            where: { id: oldDetail.productId },
-            relations: ['detail'],
-          });
-
-          if (product && product.manageStock && product.detail) {
-            const currentStock = Number(product.detail.currentStock);
-            const reversedStock = currentStock + Number(oldDetail.quantity);
-
-            await manager.update(
-              ProductDetail,
-              { productId: oldDetail.productId },
-              {
-                currentStock: reversedStock,
-                updatedBy: currentUserId,
-              },
-            );
-
-            // Reversal transaction
-            const reversalTrx = manager.create(Transaction, {
-              transactionCode: generateCode('TRX'),
-              transactionDate: new Date(),
-              transactionType: TransactionType.IN,
-              productId: oldDetail.productId,
-              beginningStock: currentStock,
-              quantity: Number(oldDetail.quantity),
-              afterStock: reversedStock,
-              remarks: `Reversed - Purchase Return Update: ${purchaseReturn.code}`,
-              createdBy: currentUserId,
-              updatedBy: currentUserId,
-            });
-            await manager.save(Transaction, reversalTrx);
-          }
+          await this.stockService.adjustStock(
+            manager,
+            oldDetail.productId,
+            oldDetail.quantity,
+            'IN',
+            `Reversed - Purchase Return Update: ${purchaseReturn.code}`,
+            currentUserId,
+          );
         }
 
         await manager.delete(PurchaseReturnDetail, { purchaseReturnId: purchaseReturn.id });
@@ -228,40 +173,16 @@ export class PurchaseReturnService {
           await manager.save(PurchaseReturnDetail, detail);
           totalPrice += Number(item.totalPrice);
 
-          // Apply stock for new details (STOCK OUT)
-          const product = await this.productRepository.findOne({
-            where: { id: item.productId },
-            relations: ['detail'],
-          });
-
-          if (product && product.manageStock && product.detail) {
-            const beginningStock = Number(product.detail.currentStock);
-            const quantity = Number(item.quantity);
-            const afterStock = Math.max(0, beginningStock - quantity);
-
-            await manager.update(
-              ProductDetail,
-              { productId: item.productId },
-              {
-                currentStock: afterStock,
-                updatedBy: currentUserId,
-              },
-            );
-
-            const transaction = manager.create(Transaction, {
-              transactionCode: generateCode('TRX'),
-              transactionDate: purchaseReturn.returnDate || new Date(),
-              transactionType: TransactionType.OUT,
-              productId: item.productId,
-              beginningStock,
-              quantity,
-              afterStock,
-              remarks: `Purchase Return Update: ${purchaseReturn.code}`,
-              createdBy: currentUserId,
-              updatedBy: currentUserId,
-            });
-            await manager.save(Transaction, transaction);
-          }
+          // Stock OUT for new details
+          await this.stockService.adjustStock(
+            manager,
+            item.productId,
+            item.quantity,
+            'OUT',
+            `Purchase Return Update: ${purchaseReturn.code}`,
+            currentUserId,
+            purchaseReturn.returnDate || new Date(),
+          );
         }
 
         purchaseReturn.totalLine = dto.details.length;
@@ -304,40 +225,16 @@ export class PurchaseReturnService {
       purchaseReturn.status = InvoiceStatus.CANCELLED;
       purchaseReturn.updatedBy = currentUserId;
 
-      // Reverse stock (STOCK IN)
+      // Reverse stock (STOCK IN — undo the original OUT to supplier)
       for (const detail of purchaseReturn.details) {
-        const product = await this.productRepository.findOne({
-          where: { id: detail.productId },
-          relations: ['detail'],
-        });
-
-        if (product && product.manageStock && product.detail) {
-          const currentStock = Number(product.detail.currentStock);
-          const reversedStock = currentStock + Number(detail.quantity);
-
-          await manager.update(
-            ProductDetail,
-            { productId: detail.productId },
-            {
-              currentStock: reversedStock,
-              updatedBy: currentUserId,
-            },
-          );
-
-          const reversalTrx = manager.create(Transaction, {
-            transactionCode: generateCode('TRX'),
-            transactionDate: new Date(),
-            transactionType: TransactionType.IN,
-            productId: detail.productId,
-            beginningStock: currentStock,
-            quantity: Number(detail.quantity),
-            afterStock: reversedStock,
-            remarks: `Cancelled - Purchase Return: ${purchaseReturn.code}`,
-            createdBy: currentUserId,
-            updatedBy: currentUserId,
-          });
-          await manager.save(Transaction, reversalTrx);
-        }
+        await this.stockService.adjustStock(
+          manager,
+          detail.productId,
+          detail.quantity,
+          'IN',
+          `Cancelled - Purchase Return: ${purchaseReturn.code}`,
+          currentUserId,
+        );
       }
 
       await manager.save(PurchaseReturn, purchaseReturn);
@@ -356,7 +253,7 @@ export class PurchaseReturnService {
   }
 
   async forceDelete(id: number): Promise<void> {
-    const pr = await this.findOne(id);
+    await this.findOne(id);
     await this.dataSource.transaction(async (manager) => {
       await manager.delete(PurchaseReturnDetail, { purchaseReturnId: id });
       await manager.delete(PurchaseReturn, id);

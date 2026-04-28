@@ -3,6 +3,7 @@ import { SoftDeleteEntity } from '../../../common/entity/base.entity';
 import { InvoiceStatus } from '../../../common/enum/invoice_status.enum';
 import { Supplier } from '../../supplier/entity/supplier.entity';
 import { PurchaseReturnDetail } from './purchase_return_detail.entity';
+import { PurchaseInvoice } from '@/purchase_invoice/entity/purchase_invoice.entity';
 
 @Entity('purchase_returns')
 export class PurchaseReturn extends SoftDeleteEntity {
@@ -42,6 +43,13 @@ export class PurchaseReturn extends SoftDeleteEntity {
   @ManyToOne(() => Supplier)
   @JoinColumn({ name: 'supplier_id' })
   supplier: Supplier;
+
+  @Column({ name: 'purchase_invoice_id', nullable: true })
+  purchaseInvoiceId: number;
+
+  @ManyToOne(() => PurchaseInvoice)
+  @JoinColumn({ name: 'purchase_invoice_id' })
+  purchaseInvoice: PurchaseInvoice;
 
   @OneToMany(() => PurchaseReturnDetail, (detail) => detail.purchaseReturn, {
     cascade: true,

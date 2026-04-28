@@ -279,7 +279,7 @@ export class SalePaymentService {
               relations: ['details'] 
             });
             if (order) {
-              await this.saleOrderRepository.autoHealFulfillment(order);
+              await this.saleOrderRepository.autoHealFulfillment(order, manager);
             }
           }
         }

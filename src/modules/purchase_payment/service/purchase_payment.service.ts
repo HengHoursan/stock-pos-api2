@@ -81,7 +81,7 @@ export class PurchasePaymentService {
               await manager.save(PurchaseInvoice, invoice);
               
               // Automatic Status Update
-              await this.purchaseInvoiceRepository.autoHealStatus(invoice, this.purchasePaymentRepository.manager);
+              await this.purchaseInvoiceRepository.autoHealStatus(invoice, manager);
 
               // Trigger Order Healing
               const invoiceDetails = await manager.createQueryBuilder('purchase_invoice_details', 'pid')
@@ -96,7 +96,7 @@ export class PurchasePaymentService {
                   relations: ['details'] 
                 });
                 if (order) {
-                  await this.purchaseOrderRepository.autoHealFulfillment(order);
+                  await this.purchaseOrderRepository.autoHealFulfillment(order, manager);
                 }
               }
             }
@@ -181,6 +181,23 @@ export class PurchasePaymentService {
 
                // Re-evaluate status
                await this.purchaseInvoiceRepository.autoHealStatus(invoice, manager);
+
+               // Trigger Order Healing
+               const invoiceDetails = await manager.createQueryBuilder('purchase_invoice_details', 'pid')
+                 .where('pid.purchase_invoice_id = :invoiceId', { invoiceId: invoice.id })
+                 .andWhere('pid.purchase_order_id IS NOT NULL')
+                 .getRawMany();
+
+               const orderIds = [...new Set(invoiceDetails.map(d => d.purchase_order_id))];
+               for (const orderId of orderIds) {
+                 const order = await manager.findOne(PurchaseOrder, { 
+                   where: { id: orderId },
+                   relations: ['details'] 
+                 });
+                 if (order) {
+                   await this.purchaseOrderRepository.autoHealFulfillment(order, manager);
+                 }
+               }
              }
           }
         }
@@ -209,6 +226,23 @@ export class PurchasePaymentService {
 
                // Re-evaluate status
                await this.purchaseInvoiceRepository.autoHealStatus(invoice, manager);
+
+               // Trigger Order Healing
+               const invoiceDetails = await manager.createQueryBuilder('purchase_invoice_details', 'pid')
+                 .where('pid.purchase_invoice_id = :invoiceId', { invoiceId: invoice.id })
+                 .andWhere('pid.purchase_order_id IS NOT NULL')
+                 .getRawMany();
+
+               const orderIds = [...new Set(invoiceDetails.map(d => d.purchase_order_id))];
+               for (const orderId of orderIds) {
+                 const order = await manager.findOne(PurchaseOrder, { 
+                   where: { id: orderId },
+                   relations: ['details'] 
+                 });
+                 if (order) {
+                   await this.purchaseOrderRepository.autoHealFulfillment(order, manager);
+                 }
+               }
             }
           }
         }

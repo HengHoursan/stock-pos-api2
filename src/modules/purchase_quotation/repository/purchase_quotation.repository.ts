@@ -25,7 +25,7 @@ export class PurchaseQuotationRepository extends Repository<PurchaseQuotation> {
     // Handle Search
     if (search && search.trim() !== '') {
       queryBuilder.andWhere(
-        '(purchase_quotation.code ILIKE :search OR purchase_quotation.description ILIKE :search)',
+        '(purchase_quotation.code ILIKE :search OR purchase_quotation.description ILIKE :search OR product.name ILIKE :search OR product.code ILIKE :search)',
         { search: `%${search}%` },
       );
     }

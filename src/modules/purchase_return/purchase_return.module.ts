@@ -5,7 +5,7 @@ import { PurchaseReturnDetail } from './entity/purchase_return_detail.entity';
 import { PurchaseReturnRepository } from './repository/purchase_return.repository';
 import { PurchaseReturnService } from './service/purchase_return.service';
 import { PurchaseReturnController } from './controller/purchase_return.controller';
-import { ProductModule } from '../product/product.module';
+import { ProductModule } from '../product/product.module'; // provides StockService
 
 @Module({
   imports: [

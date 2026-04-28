@@ -26,7 +26,7 @@ export class PurchasePaymentRepository extends Repository<PurchasePayment> {
     // Handle Search
     if (search && search.trim() !== '') {
       queryBuilder.andWhere(
-        '(purchase_payment.code ILIKE :search OR supplier.name ILIKE :search OR purchase_payment.description ILIKE :search)',
+        '(purchase_payment.code ILIKE :search OR supplier.name ILIKE :search OR purchase_payment.description ILIKE :search OR purchaseInvoice.code ILIKE :search)',
         { search: `%${search}%` },
       );
     }

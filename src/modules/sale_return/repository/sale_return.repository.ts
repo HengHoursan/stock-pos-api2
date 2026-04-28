@@ -20,13 +20,14 @@ export class SaleReturnRepository extends Repository<SaleReturn> {
 
     const queryBuilder = this.createQueryBuilder('sale_return')
       .leftJoinAndSelect('sale_return.customer', 'customer')
+      .leftJoinAndSelect('sale_return.saleInvoice', 'saleInvoice')
       .leftJoinAndSelect('sale_return.details', 'details')
       .leftJoinAndSelect('details.product', 'product');
 
     // Handle Search
     if (search && search.trim() !== '') {
       queryBuilder.andWhere(
-        '(sale_return.code ILIKE :search OR customer.name ILIKE :search OR sale_return.description ILIKE :search)',
+        '(sale_return.code ILIKE :search OR customer.name ILIKE :search OR sale_return.description ILIKE :search OR product.name ILIKE :search OR product.code ILIKE :search OR saleInvoice.code ILIKE :search)',
         { search: `%${search}%` },
       );
     }

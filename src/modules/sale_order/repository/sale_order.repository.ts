@@ -27,7 +27,7 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
     // Handle Search
     if (search && search.trim() !== '') {
       queryBuilder.andWhere(
-        '(sale_order.code ILIKE :search OR customer.name ILIKE :search OR sale_order.description ILIKE :search)',
+        '(sale_order.code ILIKE :search OR customer.name ILIKE :search OR sale_order.description ILIKE :search OR product.name ILIKE :search OR product.code ILIKE :search)',
         { search: `%${search}%` },
       );
     }

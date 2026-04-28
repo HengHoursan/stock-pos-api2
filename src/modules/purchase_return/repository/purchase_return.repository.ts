@@ -20,13 +20,14 @@ export class PurchaseReturnRepository extends Repository<PurchaseReturn> {
 
     const queryBuilder = this.createQueryBuilder('purchase_return')
       .leftJoinAndSelect('purchase_return.supplier', 'supplier')
+      .leftJoinAndSelect('purchase_return.purchaseInvoice', 'purchaseInvoice')
       .leftJoinAndSelect('purchase_return.details', 'details')
       .leftJoinAndSelect('details.product', 'product');
 
     // Handle Search
     if (search && search.trim() !== '') {
       queryBuilder.andWhere(
-        '(purchase_return.code ILIKE :search OR supplier.name ILIKE :search OR purchase_return.description ILIKE :search)',
+        '(purchase_return.code ILIKE :search OR supplier.name ILIKE :search OR purchase_return.description ILIKE :search OR product.name ILIKE :search OR product.code ILIKE :search OR purchaseInvoice.code ILIKE :search)',
         { search: `%${search}%` },
       );
     }

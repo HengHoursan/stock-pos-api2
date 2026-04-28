@@ -33,7 +33,7 @@ export class PurchaseOrderRepository extends Repository<PurchaseOrder> {
     // Handle Search
     if (search && search.trim() !== '') {
       queryBuilder.andWhere(
-        '(purchase_order.code ILIKE :search OR supplier.name ILIKE :search OR purchase_order.description ILIKE :search)',
+        '(purchase_order.code ILIKE :search OR supplier.name ILIKE :search OR purchase_order.description ILIKE :search OR product.name ILIKE :search OR product.code ILIKE :search)',
         { search: `%${search}%` },
       );
     }
