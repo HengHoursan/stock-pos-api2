@@ -205,4 +205,78 @@ export class ProductService {
       throw new NotFoundException(`Product with id ${id} not found`);
     }
   }
+
+  async duplicate(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<Product> {
+    const source = await this.findOne(id);
+
+    const newName = `${source.name} (Copy)`;
+    const newCode = generateCode('PRD');
+    const newSku = generateSKU();
+
+    return await this.dataSource.transaction(async (manager) => {
+      // 1. Create Product
+      const product = manager.create(Product, {
+        ...source,
+        id: undefined,
+        name: newName,
+        code: newCode,
+        skuCode: newSku,
+        createdBy: currentUserId,
+        updatedBy: currentUserId,
+        createdAt: undefined,
+        updatedAt: undefined,
+        deletedAt: undefined,
+        detail: undefined,
+      });
+      const savedProduct = await manager.save(Product, product);
+
+      // 2. Create Product Detail
+      if (source.detail) {
+        const detail = manager.create(ProductDetail, {
+          ...source.detail,
+          id: undefined,
+          productId: savedProduct.id,
+          createdBy: currentUserId,
+          updatedBy: currentUserId,
+          createdAt: undefined,
+          updatedAt: undefined,
+        });
+        await manager.save(ProductDetail, detail);
+      }
+
+      return manager.findOne(Product, {
+        where: { id: savedProduct.id },
+        relations: ['detail', 'category', 'brand', 'unit'],
+      }) as Promise<Product>;
+    });
+  }
+
+  async bulkUpdateStatus(
+    ids: number[],
+    status: boolean,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    await this.productRepository.update(ids, {
+      status,
+      updatedBy: currentUserId,
+    });
+  }
+
+  async bulkSoftDelete(
+    ids: number[],
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const products = await this.productRepository.createQueryBuilder('p')
+      .where('p.id IN (:...ids)', { ids })
+      .getMany();
+
+    for (const product of products) {
+      product.deletedBy = currentUserId;
+      await this.productRepository.save(product);
+    }
+    await this.productRepository.softRemove(products);
+  }
 }

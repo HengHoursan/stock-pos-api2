@@ -108,4 +108,57 @@ export class DiscountService {
     await this.discountRepository.save(discount);
     await this.discountRepository.softRemove(discount);
   }
+
+  async forceDelete(id: number): Promise<void> {
+    const result = await this.discountRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Discount with id ${id} not found`);
+    }
+  }
+
+  async duplicate(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<Discount> {
+    const source = await this.findOne(id);
+    const code = generateCode('DSCNT');
+
+    const discount = this.discountRepository.create({
+      ...source,
+      id: undefined,
+      code,
+      createdBy: currentUserId,
+      updatedBy: currentUserId,
+      createdAt: undefined,
+      updatedAt: undefined,
+      deletedAt: undefined,
+    });
+    return this.discountRepository.save(discount);
+  }
+
+  async bulkUpdateStatus(
+    ids: number[],
+    status: boolean,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    await this.discountRepository.update(ids, {
+      status,
+      updatedBy: currentUserId,
+    });
+  }
+
+  async bulkSoftDelete(
+    ids: number[],
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const discounts = await this.discountRepository.createQueryBuilder('d')
+      .where('d.id IN (:...ids)', { ids })
+      .getMany();
+
+    for (const discount of discounts) {
+      discount.deletedBy = currentUserId;
+      await this.discountRepository.save(discount);
+    }
+    await this.discountRepository.softRemove(discounts);
+  }
 }

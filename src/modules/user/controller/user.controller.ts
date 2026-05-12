@@ -9,6 +9,7 @@ import {
   ApiResponse,
   PaginationResponse,
   IdRequest,
+  BulkStatusUpdateRequest,
 } from '@/common/dto';
 
 @Controller('users')
@@ -102,6 +103,16 @@ export class UserController {
   @Permissions('user:delete')
   async forceDelete(@Body() dto: IdRequest) {
     await this.userService.forceDelete(dto.id);
-    return ApiResponse.success(null, 'User permanently deleted');
+    return ApiResponse.success(null, 'User deleted successfully');
+  }
+
+  @Post('bulk-status-update')
+  @Permissions('user:update')
+  async bulkUpdateStatus(
+    @Body() dto: BulkStatusUpdateRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.userService.bulkUpdateStatus(dto.ids, dto.status, userId);
+    return ApiResponse.success(null, 'User statuses updated successfully');
   }
 }

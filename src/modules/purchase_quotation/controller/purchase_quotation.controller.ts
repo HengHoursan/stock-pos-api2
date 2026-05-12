@@ -13,6 +13,7 @@ import {
   PaginationRequest,
   PaginationResponse,
   IdRequest,
+  BulkActionRequest,
 } from '@/common/dto';
 
 @Controller('purchase-quotations')
@@ -87,6 +88,27 @@ export class PurchaseQuotationController {
   @Permissions('purchase_quotation:delete')
   async forceDelete(@Body() dto: IdRequest) {
     await this.purchaseQuotationService.forceDelete(dto.id);
-    return ApiResponse.success(null, 'Purchase Quotation permanently deleted');
+    return ApiResponse.success(null, 'Purchase Quotation deleted successfully');
+  }
+
+  @Post('duplicate')
+  @Permissions('purchase_quotation:create')
+  async duplicate(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const quotation =
+      await this.purchaseQuotationService.duplicate(dto.id, userId);
+    return ApiResponse.success(
+      plainToInstance(PurchaseQuotationResponse, quotation),
+      'Purchase Quotation duplicated successfully',
+    );
+  }
+
+  @Post('bulk-soft-delete')
+  @Permissions('purchase_quotation:delete')
+  async bulkSoftDelete(
+    @Body() dto: BulkActionRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.purchaseQuotationService.bulkSoftDelete(dto.ids, userId);
+    return ApiResponse.success(null, 'Purchase Quotations deleted successfully');
   }
 }

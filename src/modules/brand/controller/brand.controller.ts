@@ -14,6 +14,8 @@ import {
   PaginationRequest,
   PaginationResponse,
   IdRequest,
+  BulkActionRequest,
+  BulkStatusUpdateRequest,
 } from '@/common/dto';
 
 @Controller('brands')
@@ -92,6 +94,26 @@ export class BrandController {
   @Permissions('brand:delete')
   async forceDelete(@Body() dto: IdRequest) {
     await this.brandService.forceDelete(dto.id);
-    return ApiResponse.success(null, 'Brand permanently deleted');
+    return ApiResponse.success(null, 'Brand deleted successfully');
+  }
+
+  @Post('bulk-soft-delete')
+  @Permissions('brand:delete')
+  async bulkSoftDelete(
+    @Body() dto: BulkActionRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.brandService.bulkSoftDelete(dto.ids, userId);
+    return ApiResponse.success(null, 'Brands deleted successfully');
+  }
+
+  @Post('bulk-status-update')
+  @Permissions('brand:update')
+  async bulkUpdateStatus(
+    @Body() dto: BulkStatusUpdateRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.brandService.bulkUpdateStatus(dto.ids, dto.status, userId);
+    return ApiResponse.success(null, 'Brand statuses updated successfully');
   }
 }

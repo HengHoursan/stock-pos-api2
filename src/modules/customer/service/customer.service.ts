@@ -126,4 +126,30 @@ export class CustomerService {
       throw new NotFoundException(`Customer with id ${id} not found`);
     }
   }
+
+  async bulkUpdateStatus(
+    ids: number[],
+    status: boolean,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    await this.customerRepository.update(ids, {
+      status,
+      updatedBy: currentUserId,
+    });
+  }
+
+  async bulkSoftDelete(
+    ids: number[],
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const customers = await this.customerRepository.createQueryBuilder('c')
+      .where('c.id IN (:...ids)', { ids })
+      .getMany();
+
+    for (const customer of customers) {
+      customer.deletedBy = currentUserId;
+      await this.customerRepository.save(customer);
+    }
+    await this.customerRepository.softRemove(customers);
+  }
 }

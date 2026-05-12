@@ -14,6 +14,8 @@ import {
   PaginationRequest,
   PaginationResponse,
   IdRequest,
+  BulkActionRequest,
+  BulkEnumStatusUpdateRequest,
 } from '@/common/dto';
 
 @Controller('purchase-orders')
@@ -111,6 +113,43 @@ export class PurchaseOrderController {
   @Permissions('purchase_order:delete')
   async forceDelete(@Body() dto: IdRequest) {
     await this.purchaseOrderService.forceDelete(dto.id);
-    return ApiResponse.success(null, 'Purchase Order permanently deleted');
+    return ApiResponse.success(null, 'Purchase Order deleted successfully');
+  }
+
+  @Post('duplicate')
+  @Permissions('purchase_order:create')
+  async duplicate(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const result = await this.purchaseOrderService.duplicate(dto.id, userId);
+    return ApiResponse.success(
+      plainToInstance(PurchaseOrderResponse, result),
+      'Purchase Order duplicated successfully',
+    );
+  }
+
+  @Post('bulk-soft-delete')
+  @Permissions('purchase_order:delete')
+  async bulkSoftDelete(
+    @Body() dto: BulkActionRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.purchaseOrderService.bulkSoftDelete(dto.ids, userId);
+    return ApiResponse.success(null, 'Purchase Orders deleted successfully');
+  }
+
+  @Post('bulk-status-update')
+  @Permissions('purchase_order:update')
+  async bulkUpdateStatus(
+    @Body() dto: BulkEnumStatusUpdateRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.purchaseOrderService.bulkUpdateStatus(
+      dto.ids,
+      dto.status as any,
+      userId,
+    );
+    return ApiResponse.success(
+      null,
+      'Purchase Order statuses updated successfully',
+    );
   }
 }

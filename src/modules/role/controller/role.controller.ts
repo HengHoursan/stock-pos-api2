@@ -83,6 +83,16 @@ export class RoleController {
   @Permissions('role:delete')
   async forceDelete(@Body() dto: IdRequest) {
     await this.roleService.forceDelete(dto.id);
-    return ApiResponse.success(null, 'Role permanently deleted');
+    return ApiResponse.success(null, 'Role deleted successfully');
+  }
+
+  @Post('duplicate')
+  @Permissions('role:create')
+  async duplicate(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const role = await this.roleService.duplicate(dto.id, userId);
+    return ApiResponse.success(
+      plainToInstance(RoleResponse, role),
+      'Role duplicated successfully',
+    );
   }
 }

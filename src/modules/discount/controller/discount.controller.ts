@@ -13,6 +13,8 @@ import {
   PaginationRequest,
   PaginationResponse,
   IdRequest,
+  BulkActionRequest,
+  BulkStatusUpdateRequest,
 } from '@/common/dto';
 
 @Controller('discounts')
@@ -81,5 +83,42 @@ export class DiscountController {
   async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
     await this.discountService.softDelete(dto.id, userId);
     return ApiResponse.success(null, 'Discount soft deleted successfully');
+  }
+
+  @Post('force-delete')
+  @Permissions('discount:delete')
+  async forceDelete(@Body() dto: IdRequest) {
+    await this.discountService.forceDelete(dto.id);
+    return ApiResponse.success(null, 'Discount deleted successfully');
+  }
+
+  @Post('duplicate')
+  @Permissions('discount:create')
+  async duplicate(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const discount = await this.discountService.duplicate(dto.id, userId);
+    return ApiResponse.success(
+      plainToInstance(DiscountResponse, discount),
+      'Discount duplicated successfully',
+    );
+  }
+
+  @Post('bulk-soft-delete')
+  @Permissions('discount:delete')
+  async bulkSoftDelete(
+    @Body() dto: BulkActionRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.discountService.bulkSoftDelete(dto.ids, userId);
+    return ApiResponse.success(null, 'Discounts deleted successfully');
+  }
+
+  @Post('bulk-status-update')
+  @Permissions('discount:update')
+  async bulkUpdateStatus(
+    @Body() dto: BulkStatusUpdateRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.discountService.bulkUpdateStatus(dto.ids, dto.status, userId);
+    return ApiResponse.success(null, 'Discount statuses updated successfully');
   }
 }

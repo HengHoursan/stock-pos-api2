@@ -97,4 +97,15 @@ export class UserService {
       throw new NotFoundException(`User with id ${id} not found`);
     }
   }
+
+  async bulkUpdateStatus(
+    ids: number[],
+    status: boolean,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    await this.userRepository.update(ids, {
+      status,
+      updatedBy: currentUserId,
+    });
+  }
 }

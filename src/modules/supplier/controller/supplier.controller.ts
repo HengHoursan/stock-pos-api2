@@ -14,6 +14,8 @@ import {
   PaginationRequest,
   PaginationResponse,
   IdRequest,
+  BulkActionRequest,
+  BulkStatusUpdateRequest,
 } from '@/common/dto';
 
 @Controller('suppliers')
@@ -92,6 +94,26 @@ export class SupplierController {
   @Permissions('supplier:delete')
   async forceDelete(@Body() dto: IdRequest) {
     await this.supplierService.forceDelete(dto.id);
-    return ApiResponse.success(null, 'Supplier permanently deleted');
+    return ApiResponse.success(null, 'Supplier deleted successfully');
+  }
+
+  @Post('bulk-soft-delete')
+  @Permissions('supplier:delete')
+  async bulkSoftDelete(
+    @Body() dto: BulkActionRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.supplierService.bulkSoftDelete(dto.ids, userId);
+    return ApiResponse.success(null, 'Suppliers deleted successfully');
+  }
+
+  @Post('bulk-status-update')
+  @Permissions('supplier:update')
+  async bulkUpdateStatus(
+    @Body() dto: BulkStatusUpdateRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.supplierService.bulkUpdateStatus(dto.ids, dto.status, userId);
+    return ApiResponse.success(null, 'Supplier statuses updated successfully');
   }
 }

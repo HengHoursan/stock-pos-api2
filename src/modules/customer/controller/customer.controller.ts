@@ -14,6 +14,8 @@ import {
   PaginationRequest,
   PaginationResponse,
   IdRequest,
+  BulkActionRequest,
+  BulkStatusUpdateRequest,
 } from '@/common/dto';
 
 @Controller('customers')
@@ -92,6 +94,26 @@ export class CustomerController {
   @Permissions('customer:delete')
   async forceDelete(@Body() dto: IdRequest) {
     await this.customerService.forceDelete(dto.id);
-    return ApiResponse.success(null, 'Customer permanently deleted');
+    return ApiResponse.success(null, 'Customer deleted successfully');
+  }
+
+  @Post('bulk-soft-delete')
+  @Permissions('customer:delete')
+  async bulkSoftDelete(
+    @Body() dto: BulkActionRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.customerService.bulkSoftDelete(dto.ids, userId);
+    return ApiResponse.success(null, 'Customers deleted successfully');
+  }
+
+  @Post('bulk-status-update')
+  @Permissions('customer:update')
+  async bulkUpdateStatus(
+    @Body() dto: BulkStatusUpdateRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.customerService.bulkUpdateStatus(dto.ids, dto.status, userId);
+    return ApiResponse.success(null, 'Customer statuses updated successfully');
   }
 }

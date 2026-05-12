@@ -126,4 +126,30 @@ export class SupplierService {
       throw new NotFoundException(`Supplier with id ${id} not found`);
     }
   }
+
+  async bulkUpdateStatus(
+    ids: number[],
+    status: boolean,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    await this.supplierRepository.update(ids, {
+      status,
+      updatedBy: currentUserId,
+    });
+  }
+
+  async bulkSoftDelete(
+    ids: number[],
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const suppliers = await this.supplierRepository.createQueryBuilder('s')
+      .where('s.id IN (:...ids)', { ids })
+      .getMany();
+
+    for (const supplier of suppliers) {
+      supplier.deletedBy = currentUserId;
+      await this.supplierRepository.save(supplier);
+    }
+    await this.supplierRepository.softRemove(suppliers);
+  }
 }

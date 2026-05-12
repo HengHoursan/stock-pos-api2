@@ -144,4 +144,30 @@ export class UnitService {
       throw new NotFoundException(`Unit with id ${id} not found`);
     }
   }
+
+  async bulkUpdateStatus(
+    ids: number[],
+    status: boolean,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    await this.unitRepository.update(ids, {
+      status,
+      updatedBy: currentUserId,
+    });
+  }
+
+  async bulkSoftDelete(
+    ids: number[],
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const units = await this.unitRepository.createQueryBuilder('u')
+      .where('u.id IN (:...ids)', { ids })
+      .getMany();
+
+    for (const unit of units) {
+      unit.deletedBy = currentUserId;
+      await this.unitRepository.save(unit);
+    }
+    await this.unitRepository.softRemove(units);
+  }
 }

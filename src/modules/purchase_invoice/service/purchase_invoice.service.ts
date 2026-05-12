@@ -417,5 +417,23 @@ export class PurchaseInvoiceService {
       await manager.delete(PurchaseInvoice, id);
     });
   }
+
+  async bulkUpdateStatus(
+    ids: number[],
+    status: InvoiceStatus,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    if (status === InvoiceStatus.CANCELLED) {
+      for (const id of ids) {
+        await this.cancel(id, currentUserId);
+      }
+      return;
+    }
+
+    await this.purchaseInvoiceRepository.update(ids, {
+      status,
+      updatedBy: currentUserId,
+    });
+  }
 }
 

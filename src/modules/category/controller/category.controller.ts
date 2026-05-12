@@ -14,6 +14,8 @@ import {
   ApiResponse,
   PaginationResponse,
   IdRequest,
+  BulkActionRequest,
+  BulkStatusUpdateRequest,
 } from '@/common/dto';
 
 @Controller('categories')
@@ -93,5 +95,25 @@ export class CategoryController {
   async forceDelete(@Body() dto: IdRequest) {
     await this.categoryService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Category deleted successfully');
+  }
+
+  @Post('bulk-soft-delete')
+  @Permissions('category:delete')
+  async bulkSoftDelete(
+    @Body() dto: BulkActionRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.categoryService.bulkSoftDelete(dto.ids, userId);
+    return ApiResponse.success(null, 'Categories deleted successfully');
+  }
+
+  @Post('bulk-status-update')
+  @Permissions('category:update')
+  async bulkUpdateStatus(
+    @Body() dto: BulkStatusUpdateRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.categoryService.bulkUpdateStatus(dto.ids, dto.status, userId);
+    return ApiResponse.success(null, 'Category statuses updated successfully');
   }
 }

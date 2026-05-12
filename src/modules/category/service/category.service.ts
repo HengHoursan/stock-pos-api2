@@ -159,4 +159,30 @@ export class CategoryService {
       throw new NotFoundException(`Category with id ${id} not found`);
     }
   }
+
+  async bulkUpdateStatus(
+    ids: number[],
+    status: boolean,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    await this.categoryRepository.update(ids, {
+      status,
+      updatedBy: currentUserId,
+    });
+  }
+
+  async bulkSoftDelete(
+    ids: number[],
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const categories = await this.categoryRepository.createQueryBuilder('c')
+      .where('c.id IN (:...ids)', { ids })
+      .getMany();
+
+    for (const category of categories) {
+      category.deletedBy = currentUserId;
+      await this.categoryRepository.save(category);
+    }
+    await this.categoryRepository.softRemove(categories);
+  }
 }

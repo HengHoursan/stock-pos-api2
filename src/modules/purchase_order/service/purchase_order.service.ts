@@ -226,10 +226,82 @@ export class PurchaseOrderService {
   }
 
   async forceDelete(id: number): Promise<void> {
-    const order = await this.findOne(id);
     await this.dataSource.transaction(async (manager) => {
       await manager.delete(PurchaseOrderDetail, { purchaseOrderId: id });
       await manager.delete(PurchaseOrder, id);
     });
+  }
+
+  async duplicate(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<PurchaseOrder> {
+    const source = await this.findOne(id);
+    const code = generateCode('PORD');
+
+    return await this.dataSource.transaction(async (manager) => {
+      const order = manager.create(PurchaseOrder, {
+        ...source,
+        id: undefined,
+        code,
+        orderDate: new Date(),
+        status: OrderStatus.PENDING,
+        isCancel: false,
+        totalCloseLine: 0,
+        createdBy: currentUserId,
+        updatedBy: currentUserId,
+        createdAt: undefined,
+        updatedAt: undefined,
+        deletedAt: undefined,
+        details: undefined,
+      });
+      const savedOrder = await manager.save(PurchaseOrder, order);
+
+      if (source.details && source.details.length > 0) {
+        for (const item of source.details) {
+          const detail = manager.create(PurchaseOrderDetail, {
+            ...item,
+            id: undefined,
+            purchaseOrderId: savedOrder.id,
+            createdBy: currentUserId,
+            updatedBy: currentUserId,
+          });
+          await manager.save(PurchaseOrderDetail, detail);
+        }
+      }
+
+      return manager.findOne(PurchaseOrder, {
+        where: { id: savedOrder.id },
+        relations: ['supplier', 'details', 'details.product'],
+      }) as Promise<PurchaseOrder>;
+    });
+  }
+
+  async bulkUpdateStatus(
+    ids: number[],
+    status: OrderStatus,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const isCancel = status === OrderStatus.CANCELLED;
+    await this.purchaseOrderRepository.update(ids, {
+      status,
+      isCancel,
+      updatedBy: currentUserId,
+    });
+  }
+
+  async bulkSoftDelete(
+    ids: number[],
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const orders = await this.purchaseOrderRepository.createQueryBuilder('o')
+      .where('o.id IN (:...ids)', { ids })
+      .getMany();
+
+    for (const order of orders) {
+      order.deletedBy = currentUserId;
+      await this.purchaseOrderRepository.save(order);
+    }
+    await this.purchaseOrderRepository.softRemove(orders);
   }
 }

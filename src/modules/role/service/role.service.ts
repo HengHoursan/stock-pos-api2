@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Role } from '@/role/entity/role.entity';
+import { RolePermission } from '../../role_permission/entity/role_permission.entity';
 import { CreateRoleRequest, UpdateRoleRequest } from '@/role/dto';
 import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { RoleRepository } from '@/role/repository/role.repository';
@@ -62,5 +63,42 @@ export class RoleService {
     if (result.affected === 0) {
       throw new NotFoundException(`Role with id ${id} not found`);
     }
+  }
+
+  async duplicate(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<Role> {
+    const source = await this.roleRepository.findOne({
+      where: { id },
+      relations: ['rolePermissions'],
+    });
+    if (!source) throw new NotFoundException(`Role with id ${id} not found`);
+
+    return await this.roleRepository.manager.transaction(async (manager) => {
+      const role = manager.create(Role, {
+        name: `${source.name}_copy_${Date.now()}`,
+        displayName: `${source.displayName} (Copy)`,
+        status: source.status,
+        createdBy: currentUserId,
+        updatedBy: currentUserId,
+      });
+      const savedRole = await manager.save(Role, role);
+
+      if (source.rolePermissions && source.rolePermissions.length > 0) {
+        for (const rp of source.rolePermissions) {
+          const newRp = manager.create(RolePermission, {
+            roleId: savedRole.id,
+            permissionId: rp.permissionId,
+          });
+          await manager.save(RolePermission, newRp);
+        }
+      }
+
+      return manager.findOne(Role, {
+        where: { id: savedRole.id },
+        relations: ['rolePermissions'],
+      }) as Promise<Role>;
+    });
   }
 }

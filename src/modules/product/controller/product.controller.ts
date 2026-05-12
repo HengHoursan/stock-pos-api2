@@ -14,6 +14,8 @@ import {
   ApiResponse,
   PaginationResponse,
   IdRequest,
+  BulkActionRequest,
+  BulkStatusUpdateRequest,
 } from '@/common/dto';
 
 @Controller('products')
@@ -99,5 +101,35 @@ export class ProductController {
   async forceDelete(@Body() dto: IdRequest) {
     await this.productService.forceDelete(dto.id);
     return ApiResponse.success(null, 'Product deleted successfully');
+  }
+
+  @Post('duplicate')
+  @Permissions('product:create')
+  async duplicate(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const product = await this.productService.duplicate(dto.id, userId);
+    return ApiResponse.success(
+      plainToInstance(ProductResponse, product),
+      'Product duplicated successfully',
+    );
+  }
+
+  @Post('bulk-soft-delete')
+  @Permissions('product:delete')
+  async bulkSoftDelete(
+    @Body() dto: BulkActionRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.productService.bulkSoftDelete(dto.ids, userId);
+    return ApiResponse.success(null, 'Products deleted successfully');
+  }
+
+  @Post('bulk-status-update')
+  @Permissions('product:update')
+  async bulkUpdateStatus(
+    @Body() dto: BulkStatusUpdateRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.productService.bulkUpdateStatus(dto.ids, dto.status, userId);
+    return ApiResponse.success(null, 'Product statuses updated successfully');
   }
 }

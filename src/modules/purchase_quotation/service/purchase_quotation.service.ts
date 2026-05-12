@@ -168,4 +168,61 @@ export class PurchaseQuotationService {
       await manager.delete(PurchaseQuotation, id);
     });
   }
+
+  async duplicate(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<PurchaseQuotation> {
+    const source = await this.findOne(id);
+    const code = generateCode('PQUO');
+
+    return await this.dataSource.transaction(async (manager) => {
+      const quotation = manager.create(PurchaseQuotation, {
+        ...source,
+        id: undefined,
+        code,
+        quotationDate: new Date(),
+        createdBy: currentUserId,
+        updatedBy: currentUserId,
+        createdAt: undefined,
+        updatedAt: undefined,
+        deletedAt: undefined,
+        details: undefined,
+      });
+      const savedQuotation = await manager.save(PurchaseQuotation, quotation);
+
+      if (source.details && source.details.length > 0) {
+        for (const item of source.details) {
+          const detail = manager.create(PurchaseQuotationDetail, {
+            ...item,
+            id: undefined,
+            purchaseQuotationId: savedQuotation.id,
+            createdBy: currentUserId,
+            updatedBy: currentUserId,
+          });
+          await manager.save(PurchaseQuotationDetail, detail);
+        }
+      }
+
+      return manager.findOne(PurchaseQuotation, {
+        where: { id: savedQuotation.id },
+        relations: ['details', 'details.product'],
+      }) as Promise<PurchaseQuotation>;
+    });
+  }
+
+  async bulkSoftDelete(
+    ids: number[],
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const quotations = await this.purchaseQuotationRepository.createQueryBuilder('q')
+      .where('q.id IN (:...ids)', { ids })
+      .getMany();
+
+    for (const quotation of quotations) {
+      quotation.deletedBy = currentUserId;
+      await this.purchaseQuotationRepository.save(quotation);
+    }
+    await this.purchaseQuotationRepository.softRemove(quotations);
+  }
 }

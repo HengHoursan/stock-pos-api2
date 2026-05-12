@@ -156,10 +156,64 @@ export class SaleQuotationService {
   }
 
   async forceDelete(id: number): Promise<void> {
-    const quotation = await this.findOne(id);
     await this.dataSource.transaction(async (manager) => {
       await manager.delete(SaleQuotationDetail, { saleQuotationId: id });
       await manager.delete(SaleQuotation, id);
     });
+  }
+
+  async duplicate(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<SaleQuotation> {
+    const source = await this.findOne(id);
+    const code = generateCode('SQUT');
+
+    return await this.dataSource.transaction(async (manager) => {
+      const quotation = manager.create(SaleQuotation, {
+        ...source,
+        id: undefined,
+        code,
+        quotationDate: new Date(),
+        createdBy: currentUserId,
+        updatedBy: currentUserId,
+        createdAt: undefined,
+        updatedAt: undefined,
+        deletedAt: undefined,
+        details: undefined,
+      });
+      const savedQuotation = await manager.save(SaleQuotation, quotation);
+
+      if (source.details && source.details.length > 0) {
+        for (const item of source.details) {
+          const detail = manager.create(SaleQuotationDetail, {
+            ...item,
+            id: undefined,
+            saleQuotationId: savedQuotation.id,
+          });
+          await manager.save(SaleQuotationDetail, detail);
+        }
+      }
+
+      return manager.findOne(SaleQuotation, {
+        where: { id: savedQuotation.id },
+        relations: ['customer', 'details', 'details.product'],
+      }) as Promise<SaleQuotation>;
+    });
+  }
+
+  async bulkSoftDelete(
+    ids: number[],
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const quotations = await this.saleQuotationRepository.createQueryBuilder('q')
+      .where('q.id IN (:...ids)', { ids })
+      .getMany();
+
+    for (const quotation of quotations) {
+      quotation.deletedBy = currentUserId;
+      await this.saleQuotationRepository.save(quotation);
+    }
+    await this.saleQuotationRepository.softRemove(quotations);
   }
 }

@@ -162,4 +162,30 @@ export class BrandService {
       throw new NotFoundException(`Brand with id ${id} not found`);
     }
   }
+
+  async bulkUpdateStatus(
+    ids: number[],
+    status: boolean,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    await this.brandRepository.update(ids, {
+      status,
+      updatedBy: currentUserId,
+    });
+  }
+
+  async bulkSoftDelete(
+    ids: number[],
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const brands = await this.brandRepository.createQueryBuilder('b')
+      .where('b.id IN (:...ids)', { ids })
+      .getMany();
+
+    for (const brand of brands) {
+      brand.deletedBy = currentUserId;
+      await this.brandRepository.save(brand);
+    }
+    await this.brandRepository.softRemove(brands);
+  }
 }

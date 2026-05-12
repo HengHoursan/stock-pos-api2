@@ -14,6 +14,8 @@ import {
   PaginationRequest,
   PaginationResponse,
   IdRequest,
+  BulkActionRequest,
+  BulkEnumStatusUpdateRequest,
 } from '@/common/dto';
 
 @Controller('sale-orders')
@@ -111,6 +113,40 @@ export class SaleOrderController {
   @Permissions('sale_order:delete')
   async forceDelete(@Body() dto: IdRequest) {
     await this.saleOrderService.forceDelete(dto.id);
-    return ApiResponse.success(null, 'Sale Order permanently deleted');
+    return ApiResponse.success(null, 'Sale Order deleted successfully');
+  }
+
+  @Post('duplicate')
+  @Permissions('sale_order:create')
+  async duplicate(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    const result = await this.saleOrderService.duplicate(dto.id, userId);
+    return ApiResponse.success(
+      plainToInstance(SaleOrderResponse, result),
+      'Sale Order duplicated successfully',
+    );
+  }
+
+  @Post('bulk-soft-delete')
+  @Permissions('sale_order:delete')
+  async bulkSoftDelete(
+    @Body() dto: BulkActionRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.saleOrderService.bulkSoftDelete(dto.ids, userId);
+    return ApiResponse.success(null, 'Sale Orders deleted successfully');
+  }
+
+  @Post('bulk-status-update')
+  @Permissions('sale_order:update')
+  async bulkUpdateStatus(
+    @Body() dto: BulkEnumStatusUpdateRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.saleOrderService.bulkUpdateStatus(
+      dto.ids,
+      dto.status as any,
+      userId,
+    );
+    return ApiResponse.success(null, 'Sale Order statuses updated successfully');
   }
 }

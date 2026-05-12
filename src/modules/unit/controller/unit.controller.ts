@@ -14,6 +14,8 @@ import {
   PaginationRequest,
   PaginationResponse,
   IdRequest,
+  BulkActionRequest,
+  BulkStatusUpdateRequest,
 } from '@/common/dto';
 
 @Controller('units')
@@ -92,6 +94,26 @@ export class UnitController {
   @Permissions('unit:delete')
   async forceDelete(@Body() dto: IdRequest) {
     await this.unitService.forceDelete(dto.id);
-    return ApiResponse.success(null, 'Unit permanently deleted');
+    return ApiResponse.success(null, 'Unit deleted successfully');
+  }
+
+  @Post('bulk-soft-delete')
+  @Permissions('unit:delete')
+  async bulkSoftDelete(
+    @Body() dto: BulkActionRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.unitService.bulkSoftDelete(dto.ids, userId);
+    return ApiResponse.success(null, 'Units deleted successfully');
+  }
+
+  @Post('bulk-status-update')
+  @Permissions('unit:update')
+  async bulkUpdateStatus(
+    @Body() dto: BulkStatusUpdateRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.unitService.bulkUpdateStatus(dto.ids, dto.status, userId);
+    return ApiResponse.success(null, 'Unit statuses updated successfully');
   }
 }

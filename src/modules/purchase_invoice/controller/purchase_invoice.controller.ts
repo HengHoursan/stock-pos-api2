@@ -14,6 +14,7 @@ import {
   PaginationRequest,
   PaginationResponse,
   IdRequest,
+  BulkEnumStatusUpdateRequest,
 } from '@/common/dto';
 
 @Controller('purchase-invoices')
@@ -111,6 +112,23 @@ export class PurchaseInvoiceController {
   @Permissions('purchase_invoice:delete')
   async forceDelete(@Body() dto: IdRequest) {
     await this.purchaseInvoiceService.forceDelete(dto.id);
-    return ApiResponse.success(null, 'Purchase Invoice permanently deleted');
+    return ApiResponse.success(null, 'Purchase Invoice deleted successfully');
+  }
+
+  @Post('bulk-status-update')
+  @Permissions('purchase_invoice:update')
+  async bulkUpdateStatus(
+    @Body() dto: BulkEnumStatusUpdateRequest,
+    @CurrentUser('id') userId: number,
+  ) {
+    await this.purchaseInvoiceService.bulkUpdateStatus(
+      dto.ids,
+      dto.status as any,
+      userId,
+    );
+    return ApiResponse.success(
+      null,
+      'Purchase Invoice statuses updated successfully',
+    );
   }
 }
