@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '@/user/entity/user.entity';
-import { CreateUserRequest, UpdateUserRequest } from '@/user/dto';
+import { 
+  CreateUserRequest, 
+  UpdateUserRequest, 
+  UpdateProfileRequest, 
+  ChangePasswordRequest, 
+  ResetPasswordRequest 
+} from '@/user/dto';
 import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { UserRepository } from '@/user/repository/user.repository';
 
@@ -20,6 +26,7 @@ export class UserService {
       email: dto.email,
       password: hashedPassword,
       role: { id: dto.roleId } as any,
+      photo: dto.photo,
       createdBy: currentUserId,
       updatedBy: currentUserId,
     });
@@ -71,6 +78,7 @@ export class UserService {
     if (dto.username) user.username = dto.username;
     if (dto.email) user.email = dto.email;
     if (dto.roleId) user.role = { id: dto.roleId } as any;
+    if (dto.photo !== undefined) user.photo = dto.photo;
 
     user.updatedBy = currentUserId;
 
@@ -107,5 +115,33 @@ export class UserService {
       status,
       updatedBy: currentUserId,
     });
+  }
+
+  async updateProfile(id: number, dto: UpdateProfileRequest): Promise<User> {
+    const user = await this.findOne(id);
+    user.username = dto.username;
+    user.email = dto.email;
+    if (dto.photo !== undefined) user.photo = dto.photo;
+    user.updatedBy = id;
+    return this.userRepository.save(user);
+  }
+
+  async changePassword(id: number, dto: ChangePasswordRequest): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const isMatch = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!isMatch) throw new BadRequestException('Current password does not match');
+
+    user.password = await bcrypt.hash(dto.newPassword, 10);
+    user.updatedBy = id;
+    await this.userRepository.save(user);
+  }
+
+  async resetPassword(dto: ResetPasswordRequest, currentUserId: number): Promise<void> {
+    const user = await this.findOne(dto.userId);
+    user.password = await bcrypt.hash(dto.newPassword, 10);
+    user.updatedBy = currentUserId;
+    await this.userRepository.save(user);
   }
 }

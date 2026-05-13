@@ -18,4 +18,7 @@ export class UserResponse {
 
   @Expose()
   status: boolean;
+
+  @Expose()
+  photo: string;
 }

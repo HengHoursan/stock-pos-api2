@@ -20,4 +20,8 @@ export class UpdateUserRequest {
   @IsOptional()
   @IsNumber()
   roleId?: number;
+
+  @IsString()
+  @IsOptional()
+  photo?: string;
 }

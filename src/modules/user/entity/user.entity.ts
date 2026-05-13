@@ -19,4 +19,7 @@ export class User extends SoftDeleteEntity {
 
   @Column({ default: true })
   status: boolean;
+
+  @Column({ nullable: true })
+  photo: string;
 }
