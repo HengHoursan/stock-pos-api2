@@ -134,6 +134,7 @@ export class UserService {
     if (!isMatch) throw new BadRequestException('Current password does not match');
 
     user.password = await bcrypt.hash(dto.newPassword, 10);
+    user.must_change_password = false;
     user.updatedBy = id;
     await this.userRepository.save(user);
   }
@@ -141,6 +142,7 @@ export class UserService {
   async resetPassword(dto: ResetPasswordRequest, currentUserId: number): Promise<void> {
     const user = await this.findOne(dto.userId);
     user.password = await bcrypt.hash(dto.newPassword, 10);
+    user.must_change_password = true;
     user.updatedBy = currentUserId;
     await this.userRepository.save(user);
   }

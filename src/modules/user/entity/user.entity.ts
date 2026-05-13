@@ -22,4 +22,7 @@ export class User extends SoftDeleteEntity {
 
   @Column({ nullable: true })
   photo: string;
+
+  @Column({ name: 'must_change_password', default: false })
+  must_change_password: boolean;
 }

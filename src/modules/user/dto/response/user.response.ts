@@ -21,4 +21,7 @@ export class UserResponse {
 
   @Expose()
   photo: string;
+
+  @Expose()
+  must_change_password: boolean;
 }
