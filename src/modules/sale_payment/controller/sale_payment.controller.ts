@@ -86,6 +86,13 @@ export class SalePaymentController {
     );
   }
 
+  @Post('soft-delete')
+  @Permissions('sale_payment:delete')
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.salePaymentService.softDelete(dto.id, userId);
+    return ApiResponse.success(null, 'Sale Payment soft deleted successfully');
+  }
+
   @Post('force-delete')
   @Permissions('sale_payment:delete')
   async forceDelete(@Body() dto: IdRequest) {

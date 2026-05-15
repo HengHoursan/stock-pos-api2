@@ -290,6 +290,16 @@ export class SalePaymentService {
     });
   }
 
+  async softDelete(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<void> {
+    const payment = await this.findOne(id);
+    payment.deletedBy = currentUserId;
+    await this.salePaymentRepository.save(payment);
+    await this.salePaymentRepository.softRemove(payment);
+  }
+
   async forceDelete(id: number): Promise<void> {
     const payment = await this.findOne(id);
     await this.dataSource.transaction(async (manager) => {

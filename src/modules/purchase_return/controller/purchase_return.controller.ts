@@ -100,6 +100,13 @@ export class PurchaseReturnController {
     );
   }
 
+  @Post('soft-delete')
+  @Permissions('purchase_return:delete')
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.purchaseReturnService.softDelete(dto.id, userId);
+    return ApiResponse.success(null, 'Purchase Return soft deleted successfully');
+  }
+
   @Post('force-delete')
   @Permissions('purchase_return:delete')
   async forceDelete(@Body() dto: IdRequest) {

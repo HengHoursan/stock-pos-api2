@@ -1,5 +1,5 @@
 import { RoleResponse } from '@/role/dto';
-import { Expose, Exclude, Type } from 'class-transformer';
+import { Expose, Exclude, Type, Transform } from 'class-transformer';
 
 @Exclude()
 export class UserResponse {
@@ -24,4 +24,7 @@ export class UserResponse {
 
   @Expose()
   must_change_password: boolean;
+
+  @Expose()
+  permissions: string[];
 }

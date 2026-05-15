@@ -86,6 +86,13 @@ export class PurchasePaymentController {
     );
   }
 
+  @Post('soft-delete')
+  @Permissions('purchase_payment:delete')
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.purchasePaymentService.softDelete(dto.id, userId);
+    return ApiResponse.success(null, 'Purchase Payment soft deleted successfully');
+  }
+
   @Post('force-delete')
   @Permissions('purchase_payment:delete')
   async forceDelete(@Body() dto: IdRequest) {

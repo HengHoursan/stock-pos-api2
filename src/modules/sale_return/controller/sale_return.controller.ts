@@ -100,6 +100,13 @@ export class SaleReturnController {
     );
   }
 
+  @Post('soft-delete')
+  @Permissions('sale_return:delete')
+  async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
+    await this.saleReturnService.softDelete(dto.id, userId);
+    return ApiResponse.success(null, 'Sale Return soft deleted successfully');
+  }
+
   @Post('force-delete')
   @Permissions('sale_return:delete')
   async forceDelete(@Body() dto: IdRequest) {

@@ -7,33 +7,77 @@ export const seedUsers = async (dataSource: DataSource) => {
   const userRepo = dataSource.getRepository(User);
   const roleRepo = dataSource.getRepository(Role);
 
-  const superAdminRole = await roleRepo.findOne({
-    where: { name: 'superadmin' },
-  });
-  if (!superAdminRole) {
-    console.error('Super Admin role not found. Skipping user seeding.');
+  const getRole = async (name: string): Promise<Role | null> => {
+    return await roleRepo.findOne({ where: { name } });
+  };
+
+  const superAdminRole = await getRole('superadmin');
+  const adminRole = await getRole('admin');
+  const cashierRole = await getRole('cashier');
+
+  if (!superAdminRole || !adminRole || !cashierRole) {
+    console.error('❌ Required roles not found. Run role seeding first.');
     return;
   }
 
-  const superAdminData = {
-    username: 'superadmin',
-    email: 'superadmin@gmail.com',
-    password: await bcrypt.hash('superadmin123', 10),
-    role: superAdminRole,
-  };
+  const usersToSeed = [
+    {
+      username: 'superadmin',
+      email: 'superadmin@gmail.com',
+      plainPassword: 'superadmin123',
+      role: superAdminRole,
+    },
+    {
+      username: 'admin',
+      email: 'admin@gmail.com',
+      plainPassword: 'admin123',
+      role: adminRole,
+    },
+    {
+      username: 'cashier1',
+      email: 'cashier1@gmail.com',
+      plainPassword: 'cashier123',
+      role: cashierRole,
+    },
+    {
+      username: 'cashier2',
+      email: 'cashier2@gmail.com',
+      plainPassword: 'cashier123',
+      role: cashierRole,
+    },
+    {
+      username: 'cashier3',
+      email: 'cashier3@gmail.com',
+      plainPassword: 'cashier123',
+      role: cashierRole,
+    },
+  ];
 
-  let user = await userRepo.findOne({
-    where: { username: superAdminData.username },
-  });
+  for (const data of usersToSeed) {
+    let user = await userRepo.findOne({
+      where: { username: data.username },
+    });
 
-  if (!user) {
-    user = await userRepo.save(userRepo.create(superAdminData));
-    console.log('✅ Super Admin user created (superadmin / admin@123)');
-  } else {
-    // Force update role to ensure it's correct
-    user.role = superAdminRole;
-    user.email = superAdminData.email;
-    await userRepo.save(user);
-    console.log('✅ Super Admin user role refreshed');
+    const hashedPassword = await bcrypt.hash(data.plainPassword, 10);
+
+    if (!user) {
+      const newUser = userRepo.create({
+        username: data.username,
+        email: data.email,
+        password: hashedPassword,
+        role: data.role,
+      });
+      await userRepo.save(newUser);
+      console.log(`✅ User created: ${data.username} (password: ${data.plainPassword})`);
+    } else {
+      // Update role, email and reset password to match seed
+      user.role = data.role;
+      user.email = data.email;
+      user.password = hashedPassword;
+      await userRepo.save(user);
+      console.log(`✅ User updated: ${data.username} (password reset to: ${data.plainPassword})`);
+    }
   }
+
+  console.log('🏁 User seeding completed');
 };
