@@ -48,14 +48,14 @@ export const seedRoles = async (dataSource: DataSource) => {
       // Cashier gets POS and Sales related permissions
       permissionsToAssign = await permissionRepo.find({
         where: [
-          { group: 'Customer Management' },
+          { name: In(['customer:view', 'customer:all']) },
           { group: 'Sale Order Management' },
           { group: 'Sale Invoice Management' },
           { group: 'Sale Payment Management' },
           { group: 'Sale Return Management' },
           { group: 'Sale Quotation Management' },
           { group: 'Transaction Management' },
-          { name: In(['product:all', 'product:view', 'product:list']) },
+          { name: In(['product:all', 'product:view']) },
           {
             name: In([
               'category:all',
