@@ -299,40 +299,28 @@ export const seedPermissions = async (dataSource: DataSource) => {
       sort: 1,
     },
     {
-      name: 'product:list',
-      displayName: 'List Products',
-      group: 'Product Management',
-      sort: 2,
-    },
-    {
       name: 'product:view',
       displayName: 'View Product Details',
       group: 'Product Management',
-      sort: 3,
+      sort: 2,
     },
     {
       name: 'product:create',
       displayName: 'Create Products',
       group: 'Product Management',
-      sort: 4,
+      sort: 3,
     },
     {
       name: 'product:update',
       displayName: 'Update Products',
       group: 'Product Management',
-      sort: 5,
-    },
-    {
-      name: 'product:status-update',
-      displayName: 'Update Product Status',
-      group: 'Product Management',
-      sort: 6,
+      sort: 4,
     },
     {
       name: 'product:delete',
       displayName: 'Delete Products',
       group: 'Product Management',
-      sort: 7,
+      sort: 5,
     },
   ]);
 
