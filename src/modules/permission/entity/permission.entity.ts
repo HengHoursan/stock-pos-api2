@@ -1,5 +1,8 @@
 import { Entity, Column, OneToMany } from 'typeorm';
-import { BaseEntity, SoftDeleteEntity } from '../../../common/entity/base.entity';
+import {
+  BaseEntity,
+  SoftDeleteEntity,
+} from '../../../common/entity/base.entity';
 import { RolePermission } from '../../role_permission/entity/role_permission.entity';
 
 @Entity('permissions')

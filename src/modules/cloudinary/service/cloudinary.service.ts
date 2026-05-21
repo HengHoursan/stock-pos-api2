@@ -18,7 +18,8 @@ export class CloudinaryService {
 
   async uploadImage(
     file: Express.Multer.File,
-    folder: string = 'pos-uploads',): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    folder: string = 'pos-uploads',
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(

@@ -157,8 +157,8 @@ export class ReportRepository {
       .clone()
       .select('COUNT(DISTINCT invoice.customerId)', 'totalCount')
       .getRawOne()
-      .then(res => res?.totalCount || '0');
-    
+      .then((res) => res?.totalCount || '0');
+
     const salesByCustomer = await salesByCustomerQb.getRawMany();
 
     return {
@@ -482,14 +482,14 @@ export class ReportRepository {
       .select('COUNT(DISTINCT product.id)', 'total')
       .groupBy('')
       .getRawOne()
-      .then(res => res?.total || '0');
+      .then((res) => res?.total || '0');
 
     const totalCustomers = await topCustomersQb
       .clone()
       .select('COUNT(DISTINCT customer.id)', 'total')
       .groupBy('')
       .getRawOne()
-      .then(res => res?.total || '0');
+      .then((res) => res?.total || '0');
 
     const bestSellingProducts = await bestSellingQb.getRawMany();
     const topCustomers = await topCustomersQb.getRawMany();

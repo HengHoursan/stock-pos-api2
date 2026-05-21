@@ -15,9 +15,7 @@ import { generateCode, slugify } from '@/common/util/helper';
 
 @Injectable()
 export class UnitService {
-  constructor(
-    private readonly unitRepository: UnitRepository,
-  ) {}
+  constructor(private readonly unitRepository: UnitRepository) {}
 
   async create(
     dto: CreateUnitRequest,
@@ -54,8 +52,9 @@ export class UnitService {
     pagination: PaginationRequest,
   ): Promise<[Unit[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.unitRepository.findAllWithPagination(pagination);
-    
+    const [data, total] =
+      await this.unitRepository.findAllWithPagination(pagination);
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -160,7 +159,8 @@ export class UnitService {
     ids: number[],
     currentUserId: number | null = null,
   ): Promise<void> {
-    const units = await this.unitRepository.createQueryBuilder('u')
+    const units = await this.unitRepository
+      .createQueryBuilder('u')
       .where('u.id IN (:...ids)', { ids })
       .getMany();
 

@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository, ILike, FindOptionsWhere, EntityManager } from 'typeorm';
+import {
+  DataSource,
+  Repository,
+  ILike,
+  FindOptionsWhere,
+  EntityManager,
+} from 'typeorm';
 import { PurchaseInvoice } from '../entity/purchase_invoice.entity';
 import { PaginationRequest } from '@/common/dto';
 import { InvoiceStatus } from '@/common/enum/invoice_status.enum';
@@ -36,26 +42,36 @@ export class PurchaseInvoiceRepository extends Repository<PurchaseInvoice> {
     // Handle Filters
     if (filter) {
       if (filter.status && filter.status !== 'all') {
-        queryBuilder.andWhere('purchase_invoice.status = :status', { status: Number(filter.status) });
+        queryBuilder.andWhere('purchase_invoice.status = :status', {
+          status: Number(filter.status),
+        });
       }
       if (filter.supplierId) {
-        queryBuilder.andWhere('purchase_invoice.supplierId = :supplierId', { supplierId: Number(filter.supplierId) });
+        queryBuilder.andWhere('purchase_invoice.supplierId = :supplierId', {
+          supplierId: Number(filter.supplierId),
+        });
       }
-      
+
       // Business Date Range: invoiceDate
       if (filter.startDate) {
-        queryBuilder.andWhere('purchase_invoice.invoiceDate >= :startDate', { startDate: new Date(filter.startDate) });
+        queryBuilder.andWhere('purchase_invoice.invoiceDate >= :startDate', {
+          startDate: new Date(filter.startDate),
+        });
       }
       if (filter.endDate) {
         const endDate = new Date(filter.endDate);
         endDate.setHours(23, 59, 59, 999);
-        queryBuilder.andWhere('purchase_invoice.invoiceDate <= :endDate', { endDate });
+        queryBuilder.andWhere('purchase_invoice.invoiceDate <= :endDate', {
+          endDate,
+        });
       }
     }
 
     if (sortBy && sortOrder) {
-      const orderColumn = sortBy.includes('.') ? sortBy : `purchase_invoice.${sortBy}`;
-      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
+      const orderColumn = sortBy.includes('.')
+        ? sortBy
+        : `purchase_invoice.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder);
     } else {
       queryBuilder.orderBy('purchase_invoice.createdAt', 'DESC');
     }

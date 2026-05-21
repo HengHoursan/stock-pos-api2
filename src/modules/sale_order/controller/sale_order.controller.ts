@@ -147,6 +147,9 @@ export class SaleOrderController {
       dto.status as any,
       userId,
     );
-    return ApiResponse.success(null, 'Sale Order statuses updated successfully');
+    return ApiResponse.success(
+      null,
+      'Sale Order statuses updated successfully',
+    );
   }
 }

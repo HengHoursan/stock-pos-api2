@@ -15,6 +15,10 @@ import { PurchaseOrderController } from './controller/purchase_order.controller'
     PurchaseOrderRepository,
     PurchaseOrderDetailRepository,
   ],
-  exports: [PurchaseOrderService, PurchaseOrderRepository, PurchaseOrderDetailRepository],
+  exports: [
+    PurchaseOrderService,
+    PurchaseOrderRepository,
+    PurchaseOrderDetailRepository,
+  ],
 })
 export class PurchaseOrderModule {}

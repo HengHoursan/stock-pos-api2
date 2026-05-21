@@ -17,7 +17,13 @@ export class SaleQuotation extends SoftDeleteEntity {
   @Column({ name: 'total_line', type: 'int', default: 0 })
   totalLine: number;
 
-  @Column({ name: 'total_price', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'total_price',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   totalPrice: number;
 
   @Column({ type: 'text', nullable: true })
@@ -27,6 +33,8 @@ export class SaleQuotation extends SoftDeleteEntity {
   @JoinColumn({ name: 'customer_id' })
   customer: Customer;
 
-  @OneToMany(() => SaleQuotationDetail, (detail) => detail.saleQuotation, { cascade: true })
+  @OneToMany(() => SaleQuotationDetail, (detail) => detail.saleQuotation, {
+    cascade: true,
+  })
   details: SaleQuotationDetail[];
 }

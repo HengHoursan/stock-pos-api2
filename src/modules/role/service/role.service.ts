@@ -9,11 +9,12 @@ import { RoleRepository } from '@/role/repository/role.repository';
 
 @Injectable()
 export class RoleService {
-  constructor(
-    private readonly roleRepository: RoleRepository,
-  ) {}
+  constructor(private readonly roleRepository: RoleRepository) {}
 
-  async create(dto: CreateRoleRequest, currentUserId: number | null = null): Promise<Role> {
+  async create(
+    dto: CreateRoleRequest,
+    currentUserId: number | null = null,
+  ): Promise<Role> {
     const role = this.roleRepository.create({
       ...dto,
       createdBy: currentUserId,
@@ -26,8 +27,9 @@ export class RoleService {
     pagination: PaginationRequest,
   ): Promise<[Role[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.roleRepository.findAllWithPagination(pagination);
-    
+    const [data, total] =
+      await this.roleRepository.findAllWithPagination(pagination);
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -44,14 +46,20 @@ export class RoleService {
     return role;
   }
 
-  async update(dto: UpdateRoleRequest, currentUserId: number | null = null): Promise<Role> {
+  async update(
+    dto: UpdateRoleRequest,
+    currentUserId: number | null = null,
+  ): Promise<Role> {
     const role = await this.findOne(dto.id);
     Object.assign(role, dto);
     role.updatedBy = currentUserId;
     return this.roleRepository.save(role);
   }
 
-  async softDelete(id: number, currentUserId: number | null = null): Promise<void> {
+  async softDelete(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<void> {
     const role = await this.findOne(id);
     role.deletedBy = currentUserId;
     await this.roleRepository.save(role);

@@ -16,7 +16,13 @@ export class PurchaseInvoiceDetail extends SoftDeleteEntity {
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   quantity: number;
 
-  @Column({ name: 'total_price', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'total_price',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   totalPrice: number;
 
   @Column({ name: 'purchase_order_id', nullable: true })

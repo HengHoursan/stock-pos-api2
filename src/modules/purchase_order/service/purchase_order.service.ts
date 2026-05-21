@@ -32,7 +32,9 @@ export class PurchaseOrderService {
 
     const existingCode = await this.purchaseOrderRepository.findByCode(code);
     if (existingCode) {
-      throw new ConflictException(`Purchase Order with code "${code}" already exists`);
+      throw new ConflictException(
+        `Purchase Order with code "${code}" already exists`,
+      );
     }
 
     return await this.dataSource.transaction(async (manager) => {
@@ -117,16 +119,22 @@ export class PurchaseOrderService {
     }
 
     // Mark items that are already invoiced
-    const { PurchaseInvoiceDetail } = await import('../../purchase_invoice/entity/purchase_invoice_detail.entity.js');
-    const linkedInvoiceDetails = await this.dataSource.manager.find(PurchaseInvoiceDetail, {
-      where: { purchaseOrderDetailId: In(order.details.map(d => d.id)) }
-    });
-    
-    const invoicedDetailIds = new Set(linkedInvoiceDetails.map(lid => lid.purchaseOrderDetailId));
-    
-    order.details = order.details.map(detail => ({
+    const { PurchaseInvoiceDetail } =
+      await import('../../purchase_invoice/entity/purchase_invoice_detail.entity.js');
+    const linkedInvoiceDetails = await this.dataSource.manager.find(
+      PurchaseInvoiceDetail,
+      {
+        where: { purchaseOrderDetailId: In(order.details.map((d) => d.id)) },
+      },
+    );
+
+    const invoicedDetailIds = new Set(
+      linkedInvoiceDetails.map((lid) => lid.purchaseOrderDetailId),
+    );
+
+    order.details = order.details.map((detail) => ({
       ...detail,
-      isInvoiced: invoicedDetailIds.has(detail.id)
+      isInvoiced: invoicedDetailIds.has(detail.id),
     })) as any;
 
     return order;
@@ -139,25 +147,32 @@ export class PurchaseOrderService {
     const order = await this.findOne(dto.id);
 
     if (order.status !== OrderStatus.PENDING) {
-      throw new BadRequestException('Cannot edit a purchase order that is not in PENDING status');
+      throw new BadRequestException(
+        'Cannot edit a purchase order that is not in PENDING status',
+      );
     }
 
     if (dto.code && dto.code !== order.code) {
       const existing = await this.purchaseOrderRepository.findByCode(dto.code);
       if (existing) {
-        throw new ConflictException(`Purchase Order with code "${dto.code}" already exists`);
+        throw new ConflictException(
+          `Purchase Order with code "${dto.code}" already exists`,
+        );
       }
     }
 
     return await this.dataSource.transaction(async (manager) => {
       if (dto.code) order.code = dto.code;
       if (dto.supplierId) order.supplierId = dto.supplierId;
-      if (dto.orderDate) order.orderDate = DateConvertor(dto.orderDate) || order.orderDate;
+      if (dto.orderDate)
+        order.orderDate = DateConvertor(dto.orderDate) || order.orderDate;
       if (dto.description !== undefined) order.description = dto.description;
       order.updatedBy = currentUserId;
 
       if (dto.details) {
-        await manager.delete(PurchaseOrderDetail, { purchaseOrderId: order.id });
+        await manager.delete(PurchaseOrderDetail, {
+          purchaseOrderId: order.id,
+        });
 
         let totalPrice = 0;
         for (const item of dto.details) {
@@ -294,7 +309,8 @@ export class PurchaseOrderService {
     ids: number[],
     currentUserId: number | null = null,
   ): Promise<void> {
-    const orders = await this.purchaseOrderRepository.createQueryBuilder('o')
+    const orders = await this.purchaseOrderRepository
+      .createQueryBuilder('o')
       .where('o.id IN (:...ids)', { ids })
       .getMany();
 

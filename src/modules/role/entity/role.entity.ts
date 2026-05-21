@@ -7,7 +7,7 @@ import { RolePermission } from '../../role_permission/entity/role_permission.ent
 export class Role extends SoftDeleteEntity {
   @Column({ unique: true })
   name: string;
-  
+
   @Column({ name: 'display_name', nullable: true })
   displayName: string;
 

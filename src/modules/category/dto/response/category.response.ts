@@ -31,4 +31,3 @@ export class CategoryResponse {
   @Expose()
   updatedAt: Date;
 }
-

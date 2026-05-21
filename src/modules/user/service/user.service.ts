@@ -1,25 +1,30 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '@/user/entity/user.entity';
-import { 
-  CreateUserRequest, 
-  UpdateUserRequest, 
-  UpdateProfileRequest, 
-  ChangePasswordRequest, 
-  ResetPasswordRequest 
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+  UpdateProfileRequest,
+  ChangePasswordRequest,
+  ResetPasswordRequest,
 } from '@/user/dto';
 import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { UserRepository } from '@/user/repository/user.repository';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly userRepository: UserRepository,
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
-  async create(dto: CreateUserRequest, currentUserId: number | null = null): Promise<User> {
+  async create(
+    dto: CreateUserRequest,
+    currentUserId: number | null = null,
+  ): Promise<User> {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     const user = this.userRepository.create({
       username: dto.username,
@@ -37,8 +42,9 @@ export class UserService {
     pagination: PaginationRequest,
   ): Promise<[User[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.userRepository.findAllWithPagination(pagination);
-    
+    const [data, total] =
+      await this.userRepository.findAllWithPagination(pagination);
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -70,7 +76,10 @@ export class UserService {
     return this.userRepository.findByEmailWithPermissions(email);
   }
 
-  async update(dto: UpdateUserRequest, currentUserId: number | null = null): Promise<User> {
+  async update(
+    dto: UpdateUserRequest,
+    currentUserId: number | null = null,
+  ): Promise<User> {
     const user = await this.findOne(dto.id);
     if (dto.password) {
       user.password = await bcrypt.hash(dto.password, 10);
@@ -85,14 +94,21 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-  async updateStatus(id: number, status: boolean, currentUserId: number | null = null): Promise<User> {
+  async updateStatus(
+    id: number,
+    status: boolean,
+    currentUserId: number | null = null,
+  ): Promise<User> {
     const user = await this.findOne(id);
     user.status = status;
     user.updatedBy = currentUserId;
     return this.userRepository.save(user);
   }
 
-  async softDelete(id: number, currentUserId: number | null = null): Promise<void> {
+  async softDelete(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<void> {
     const user = await this.findOne(id);
     user.deletedBy = currentUserId;
     await this.userRepository.save(user);
@@ -131,7 +147,8 @@ export class UserService {
     if (!user) throw new NotFoundException('User not found');
 
     const isMatch = await bcrypt.compare(dto.currentPassword, user.password);
-    if (!isMatch) throw new BadRequestException('Current password does not match');
+    if (!isMatch)
+      throw new BadRequestException('Current password does not match');
 
     user.password = await bcrypt.hash(dto.newPassword, 10);
     user.must_change_password = false;
@@ -139,7 +156,10 @@ export class UserService {
     await this.userRepository.save(user);
   }
 
-  async resetPassword(dto: ResetPasswordRequest, currentUserId: number): Promise<void> {
+  async resetPassword(
+    dto: ResetPasswordRequest,
+    currentUserId: number,
+  ): Promise<void> {
     const user = await this.findOne(dto.userId);
     user.password = await bcrypt.hash(dto.newPassword, 10);
     user.must_change_password = true;

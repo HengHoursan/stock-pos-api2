@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { ProductDetail } from '../entity/product_detail.entity';
 import { Product } from '../entity/product.entity';
@@ -85,9 +81,7 @@ export class StockService {
     }
 
     const afterStock =
-      type === 'IN'
-        ? beginningStock + qty
-        : Math.max(0, beginningStock - qty);
+      type === 'IN' ? beginningStock + qty : Math.max(0, beginningStock - qty);
 
     // Persist updated stock
     await manager.update(
@@ -100,8 +94,7 @@ export class StockService {
     const trx = manager.create(Transaction, {
       transactionCode: generateCode('TRX'),
       transactionDate: date ?? new Date(),
-      transactionType:
-        type === 'IN' ? TransactionType.IN : TransactionType.OUT,
+      transactionType: type === 'IN' ? TransactionType.IN : TransactionType.OUT,
       productId,
       beginningStock,
       quantity: qty,
@@ -147,7 +140,9 @@ export class StockService {
       const product = await manager.findOne(Product, {
         where: { id: productId },
       });
-      const label = product ? `"${product.name}" (${product.code})` : `#${productId}`;
+      const label = product
+        ? `"${product.name}" (${product.code})`
+        : `#${productId}`;
       throw new BadRequestException(
         `Insufficient stock for product ${label}. Available: ${available}, Required: ${required}.`,
       );

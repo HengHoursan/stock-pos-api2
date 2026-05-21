@@ -70,7 +70,7 @@ export class PurchaseOrderRepository extends Repository<PurchaseOrder> {
       const orderColumn = sortBy.includes('.')
         ? sortBy
         : `purchase_order.${sortBy}`;
-      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
+      queryBuilder.orderBy(orderColumn, sortOrder);
     } else {
       queryBuilder.orderBy('purchase_order.createdAt', 'DESC');
     }

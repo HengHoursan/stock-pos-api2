@@ -13,7 +13,7 @@ import { SaleInvoiceModule } from '../sale_invoice/sale_invoice.module';
   imports: [
     TypeOrmModule.forFeature([SalePayment, SalePaymentDetail]),
     SaleOrderModule,
-    SaleInvoiceModule
+    SaleInvoiceModule,
   ],
   controllers: [SalePaymentController],
   providers: [SalePaymentRepository, SalePaymentService],

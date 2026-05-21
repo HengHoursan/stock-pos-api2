@@ -32,7 +32,9 @@ export class SaleOrderService {
 
     const existingCode = await this.saleOrderRepository.findByCode(code);
     if (existingCode) {
-      throw new ConflictException(`Sale Order with code "${code}" already exists`);
+      throw new ConflictException(
+        `Sale Order with code "${code}" already exists`,
+      );
     }
 
     return await this.dataSource.transaction(async (manager) => {
@@ -118,17 +120,45 @@ export class SaleOrderService {
     }
 
     // Mark items that are already invoiced
-    const { SaleInvoiceDetail } = await import('../../sale_invoice/entity/sale_invoice_detail.entity.js');
-    const linkedInvoiceDetails = await this.dataSource.manager.find(SaleInvoiceDetail, {
-      where: { saleOrderDetailId: In(order.details.map(d => d.id)) }
-    });
-    
-    const invoicedDetailIds = new Set(linkedInvoiceDetails.map(lid => lid.saleOrderDetailId));
-    
-    order.details = order.details.map(detail => ({
+    const { SaleInvoiceDetail } =
+      await import('../../sale_invoice/entity/sale_invoice_detail.entity.js');
+    const linkedInvoiceDetails = await this.dataSource.manager.find(
+      SaleInvoiceDetail,
+      {
+        where: { saleOrderDetailId: In(order.details.map((d) => d.id)) },
+      },
+    );
+
+    const invoicedDetailIds = new Set(
+      linkedInvoiceDetails.map((lid) => lid.saleOrderDetailId),
+    );
+
+    order.details = order.details.map((detail) => ({
       ...detail,
-      isInvoiced: invoicedDetailIds.has(detail.id)
+      isInvoiced: invoicedDetailIds.has(detail.id),
     })) as any;
+
+    const uniqueInvoiceIds = [...new Set(linkedInvoiceDetails.map(lid => lid.saleInvoiceId))].filter(Boolean);
+    const { SaleInvoice } = await import('../../sale_invoice/entity/sale_invoice.entity.js');
+    const relatedInvoices = uniqueInvoiceIds.length > 0 ? await this.dataSource.manager.find(SaleInvoice, {
+      where: { id: In(uniqueInvoiceIds) },
+      order: { createdAt: 'DESC' }
+    }) : [];
+
+    const { SalePaymentDetail } = await import('../../sale_payment/entity/sale_payment_detail.entity.js');
+    const linkedPaymentDetails = uniqueInvoiceIds.length > 0 ? await this.dataSource.manager.find(SalePaymentDetail, {
+      where: { saleInvoiceId: In(uniqueInvoiceIds) },
+    }) : [];
+    
+    const uniquePaymentIds = [...new Set(linkedPaymentDetails.map(lpd => lpd.salePaymentId))].filter(Boolean);
+    const { SalePayment } = await import('../../sale_payment/entity/sale_payment.entity.js');
+    const relatedPayments = uniquePaymentIds.length > 0 ? await this.dataSource.manager.find(SalePayment, {
+       where: { id: In(uniquePaymentIds) },
+       order: { createdAt: 'DESC' }
+    }) : [];
+
+    (order as any).invoices = relatedInvoices;
+    (order as any).payments = relatedPayments;
 
     return order;
   }
@@ -140,20 +170,25 @@ export class SaleOrderService {
     const order = await this.findOne(dto.id);
 
     if (order.status !== OrderStatus.PENDING) {
-      throw new BadRequestException('Cannot edit a sale order that is not in PENDING status');
+      throw new BadRequestException(
+        'Cannot edit a sale order that is not in PENDING status',
+      );
     }
 
     if (dto.code && dto.code !== order.code) {
       const existing = await this.saleOrderRepository.findByCode(dto.code);
       if (existing) {
-        throw new ConflictException(`Sale Order with code "${dto.code}" already exists`);
+        throw new ConflictException(
+          `Sale Order with code "${dto.code}" already exists`,
+        );
       }
     }
 
     return await this.dataSource.transaction(async (manager) => {
       if (dto.code) order.code = dto.code;
       if (dto.customerId) order.customerId = dto.customerId;
-      if (dto.orderDate) order.orderDate = DateConvertor(dto.orderDate) || order.orderDate;
+      if (dto.orderDate)
+        order.orderDate = DateConvertor(dto.orderDate) || order.orderDate;
       if (dto.description !== undefined) order.description = dto.description;
       order.updatedBy = currentUserId;
 
@@ -295,7 +330,8 @@ export class SaleOrderService {
     ids: number[],
     currentUserId: number | null = null,
   ): Promise<void> {
-    const orders = await this.saleOrderRepository.createQueryBuilder('o')
+    const orders = await this.saleOrderRepository
+      .createQueryBuilder('o')
       .where('o.id IN (:...ids)', { ids })
       .getMany();
 

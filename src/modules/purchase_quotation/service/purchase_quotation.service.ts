@@ -27,9 +27,12 @@ export class PurchaseQuotationService {
   ): Promise<PurchaseQuotation> {
     const code = dto.code?.trim() || generateCode('PQUO');
 
-    const existingCode = await this.purchaseQuotationRepository.findByCode(code);
+    const existingCode =
+      await this.purchaseQuotationRepository.findByCode(code);
     if (existingCode) {
-      throw new ConflictException(`Purchase Quotation with code "${code}" already exists`);
+      throw new ConflictException(
+        `Purchase Quotation with code "${code}" already exists`,
+      );
     }
 
     return await this.dataSource.transaction(async (manager) => {
@@ -106,21 +109,30 @@ export class PurchaseQuotationService {
     const quotation = await this.findOne(dto.id);
 
     if (dto.code && dto.code !== quotation.code) {
-      const existing = await this.purchaseQuotationRepository.findByCode(dto.code);
+      const existing = await this.purchaseQuotationRepository.findByCode(
+        dto.code,
+      );
       if (existing) {
-        throw new ConflictException(`Purchase Quotation with code "${dto.code}" already exists`);
+        throw new ConflictException(
+          `Purchase Quotation with code "${dto.code}" already exists`,
+        );
       }
     }
 
     return await this.dataSource.transaction(async (manager) => {
       if (dto.code) quotation.code = dto.code;
-      if (dto.quotationDate) quotation.quotationDate = DateConvertor(dto.quotationDate) || quotation.quotationDate;
-      if (dto.description !== undefined) quotation.description = dto.description;
+      if (dto.quotationDate)
+        quotation.quotationDate =
+          DateConvertor(dto.quotationDate) || quotation.quotationDate;
+      if (dto.description !== undefined)
+        quotation.description = dto.description;
       quotation.updatedBy = currentUserId;
 
       if (dto.details) {
         // Delete existing details
-        await manager.delete(PurchaseQuotationDetail, { purchaseQuotationId: quotation.id });
+        await manager.delete(PurchaseQuotationDetail, {
+          purchaseQuotationId: quotation.id,
+        });
 
         // Re-insert details
         let totalPrice = 0;
@@ -164,7 +176,9 @@ export class PurchaseQuotationService {
     const quotation = await this.findOne(id);
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.delete(PurchaseQuotationDetail, { purchaseQuotationId: id });
+      await manager.delete(PurchaseQuotationDetail, {
+        purchaseQuotationId: id,
+      });
       await manager.delete(PurchaseQuotation, id);
     });
   }
@@ -215,7 +229,8 @@ export class PurchaseQuotationService {
     ids: number[],
     currentUserId: number | null = null,
   ): Promise<void> {
-    const quotations = await this.purchaseQuotationRepository.createQueryBuilder('q')
+    const quotations = await this.purchaseQuotationRepository
+      .createQueryBuilder('q')
       .where('q.id IN (:...ids)', { ids })
       .getMany();
 

@@ -19,6 +19,10 @@ import { ProductModule } from '../product/product.module';
     PurchaseInvoiceRepository,
     PurchaseInvoiceDetailRepository,
   ],
-  exports: [PurchaseInvoiceService, PurchaseInvoiceRepository, PurchaseInvoiceDetailRepository],
+  exports: [
+    PurchaseInvoiceService,
+    PurchaseInvoiceRepository,
+    PurchaseInvoiceDetailRepository,
+  ],
 })
 export class PurchaseInvoiceModule {}

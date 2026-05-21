@@ -20,12 +20,11 @@ import { PermissionsGuard } from '../../common/security/guard/permissions.guard'
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => configService.get('database')!,
+      useFactory: (configService: ConfigService) =>
+        configService.get('database')!,
     }),
     CoreModule,
     SeedModule,
-    SupplierModule,
-    CustomerModule,
   ],
   providers: [
     {

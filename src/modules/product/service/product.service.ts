@@ -36,7 +36,9 @@ export class ProductService {
     }
 
     if (dto.skuCode && dto.skuCode.trim() !== '') {
-      const existingSku = await this.productRepository.findBySkuCode(dto.skuCode);
+      const existingSku = await this.productRepository.findBySkuCode(
+        dto.skuCode,
+      );
       if (existingSku) {
         throw new ConflictException(
           `Product with SKU "${dto.skuCode}" already exists`,
@@ -269,7 +271,8 @@ export class ProductService {
     ids: number[],
     currentUserId: number | null = null,
   ): Promise<void> {
-    const products = await this.productRepository.createQueryBuilder('p')
+    const products = await this.productRepository
+      .createQueryBuilder('p')
       .where('p.id IN (:...ids)', { ids })
       .getMany();
 

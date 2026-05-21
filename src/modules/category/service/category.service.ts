@@ -4,7 +4,11 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { CategoryRepository } from '@/category/repository/category.repository';
-import { CreateCategoryRequest, UpdateCategoryRequest, UpdateCategoryStatusRequest } from '@/category/dto';
+import {
+  CreateCategoryRequest,
+  UpdateCategoryRequest,
+  UpdateCategoryStatusRequest,
+} from '@/category/dto';
 import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { Category } from '@/category/entity/category.entity';
 import { generateCode, slugify } from '@/common/util/helper';
@@ -54,8 +58,9 @@ export class CategoryService {
     pagination: PaginationRequest,
   ): Promise<[Category[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.categoryRepository.findAllWithPagination(pagination);
-    
+    const [data, total] =
+      await this.categoryRepository.findAllWithPagination(pagination);
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -147,10 +152,13 @@ export class CategoryService {
         const filenameWithExtension = parts.pop();
         const publicId = filenameWithExtension?.split('.')[0];
         const fullPublicId = `pos-uploads/${publicId}`; // Folder is hardcoded for now or we could store it
-        
+
         await this.cloudinaryService.deleteImage(fullPublicId);
       } catch (error) {
-        console.error('Failed to delete Category image from Cloudinary:', error);
+        console.error(
+          'Failed to delete Category image from Cloudinary:',
+          error,
+        );
       }
     }
 
@@ -175,7 +183,8 @@ export class CategoryService {
     ids: number[],
     currentUserId: number | null = null,
   ): Promise<void> {
-    const categories = await this.categoryRepository.createQueryBuilder('c')
+    const categories = await this.categoryRepository
+      .createQueryBuilder('c')
       .where('c.id IN (:...ids)', { ids })
       .getMany();
 

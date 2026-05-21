@@ -16,7 +16,6 @@ export const generateSKU = (prefix = 'SKU'): string => {
   return `${prefix}-${date}-${random}`;
 };
 
-
 /**
  * Simple slugify function
  */
@@ -44,18 +43,18 @@ export const DateConvertor = (dateString: string): Date | null => {
  */
 export const TimeConvertor = (timeString: string): Date | null => {
   if (!timeString) return null;
-  
+
   // Handle both : and :: if user meant that, but usually HH:mm
   const parts = timeString.split(/:+/).map(Number);
   const [hours, minutes, seconds] = parts;
-  
+
   const date = new Date();
   if (isNaN(hours)) return null;
-  
+
   date.setHours(hours);
   date.setMinutes(minutes || 0);
   date.setSeconds(seconds || 0);
   date.setMilliseconds(0);
-  
+
   return isNaN(date.getTime()) ? null : date;
 };

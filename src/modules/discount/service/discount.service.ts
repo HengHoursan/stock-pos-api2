@@ -45,8 +45,9 @@ export class DiscountService {
     pagination: PaginationRequest,
   ): Promise<[Discount[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.discountRepository.findAllWithPagination(pagination);
-    
+    const [data, total] =
+      await this.discountRepository.findAllWithPagination(pagination);
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -87,7 +88,9 @@ export class DiscountService {
 
     const updateData: any = { ...dto };
     if (dto.discountStartDate) {
-      updateData.discountStartDate = DateConvertor(dto.discountStartDate) as Date;
+      updateData.discountStartDate = DateConvertor(
+        dto.discountStartDate,
+      ) as Date;
     }
     if (dto.discountEndDate) {
       updateData.discountEndDate = DateConvertor(dto.discountEndDate) as Date;
@@ -151,7 +154,8 @@ export class DiscountService {
     ids: number[],
     currentUserId: number | null = null,
   ): Promise<void> {
-    const discounts = await this.discountRepository.createQueryBuilder('d')
+    const discounts = await this.discountRepository
+      .createQueryBuilder('d')
       .where('d.id IN (:...ids)', { ids })
       .getMany();
 

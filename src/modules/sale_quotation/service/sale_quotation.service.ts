@@ -5,7 +5,10 @@ import {
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { SaleQuotationRepository } from '@/sale_quotation/repository/sale_quotation.repository';
-import { CreateSaleQuotationRequest, UpdateSaleQuotationRequest } from '@/sale_quotation/dto';
+import {
+  CreateSaleQuotationRequest,
+  UpdateSaleQuotationRequest,
+} from '@/sale_quotation/dto';
 import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { SaleQuotation } from '@/sale_quotation/entity/sale_quotation.entity';
 import { SaleQuotationDetail } from '@/sale_quotation/entity/sale_quotation_detail.entity';
@@ -26,7 +29,9 @@ export class SaleQuotationService {
 
     const existingCode = await this.saleQuotationRepository.findByCode(code);
     if (existingCode) {
-      throw new ConflictException(`Sale Quotation with code "${code}" already exists`);
+      throw new ConflictException(
+        `Sale Quotation with code "${code}" already exists`,
+      );
     }
 
     return await this.dataSource.transaction(async (manager) => {
@@ -105,19 +110,26 @@ export class SaleQuotationService {
     if (dto.code && dto.code !== quotation.code) {
       const existing = await this.saleQuotationRepository.findByCode(dto.code);
       if (existing) {
-        throw new ConflictException(`Sale Quotation with code "${dto.code}" already exists`);
+        throw new ConflictException(
+          `Sale Quotation with code "${dto.code}" already exists`,
+        );
       }
     }
 
     return await this.dataSource.transaction(async (manager) => {
       if (dto.code) quotation.code = dto.code;
       if (dto.customerId) quotation.customerId = dto.customerId;
-      if (dto.quotationDate) quotation.quotationDate = DateConvertor(dto.quotationDate) || quotation.quotationDate;
-      if (dto.description !== undefined) quotation.description = dto.description;
+      if (dto.quotationDate)
+        quotation.quotationDate =
+          DateConvertor(dto.quotationDate) || quotation.quotationDate;
+      if (dto.description !== undefined)
+        quotation.description = dto.description;
       quotation.updatedBy = currentUserId;
 
       if (dto.details) {
-        await manager.delete(SaleQuotationDetail, { saleQuotationId: quotation.id });
+        await manager.delete(SaleQuotationDetail, {
+          saleQuotationId: quotation.id,
+        });
 
         let totalPrice = 0;
         for (const item of dto.details) {
@@ -206,7 +218,8 @@ export class SaleQuotationService {
     ids: number[],
     currentUserId: number | null = null,
   ): Promise<void> {
-    const quotations = await this.saleQuotationRepository.createQueryBuilder('q')
+    const quotations = await this.saleQuotationRepository
+      .createQueryBuilder('q')
       .where('q.id IN (:...ids)', { ids })
       .getMany();
 

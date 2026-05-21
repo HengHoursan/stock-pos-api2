@@ -13,12 +13,22 @@ export class PurchaseQuotation extends SoftDeleteEntity {
   @Column({ name: 'total_line', type: 'int', default: 0 })
   totalLine: number;
 
-  @Column({ name: 'total_price', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'total_price',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   totalPrice: number;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @OneToMany(() => PurchaseQuotationDetail, (detail) => detail.purchaseQuotation, { cascade: true })
+  @OneToMany(
+    () => PurchaseQuotationDetail,
+    (detail) => detail.purchaseQuotation,
+    { cascade: true },
+  )
   details: PurchaseQuotationDetail[];
 }

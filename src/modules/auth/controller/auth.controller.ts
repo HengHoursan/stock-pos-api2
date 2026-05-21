@@ -2,7 +2,14 @@ import { Controller, Post, Body, Req, Headers } from '@nestjs/common';
 import type { Request } from 'express';
 import { Public } from '@/common/security/decorator/public.decorator';
 import { AuthService } from '@/auth/service/auth.service';
-import { LoginRequest, RegisterRequest, RefreshTokenRequest, LoginResponse, RegisterResponse, RefreshTokenResponse } from '@/auth/dto';
+import {
+  LoginRequest,
+  RegisterRequest,
+  RefreshTokenRequest,
+  LoginResponse,
+  RegisterResponse,
+  RefreshTokenResponse,
+} from '@/auth/dto';
 import { ApiResponse } from '@/common/dto';
 
 @Controller('authentications')
@@ -13,7 +20,10 @@ export class AuthController {
   @Post('register')
   async register(@Body() dto: RegisterRequest) {
     const tokens = await this.authService.register(dto);
-    return ApiResponse.success<RegisterResponse>(tokens, 'Registration successful');
+    return ApiResponse.success<RegisterResponse>(
+      tokens,
+      'Registration successful',
+    );
   }
 
   @Public()
@@ -27,7 +37,10 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Body() dto: RefreshTokenRequest) {
     const tokens = await this.authService.refreshTokens(dto.refreshToken);
-    return ApiResponse.success<RefreshTokenResponse>(tokens, 'Tokens refreshed successfully');
+    return ApiResponse.success<RefreshTokenResponse>(
+      tokens,
+      'Tokens refreshed successfully',
+    );
   }
 
   @Post('logout')

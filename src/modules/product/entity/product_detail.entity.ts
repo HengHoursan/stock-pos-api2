@@ -7,16 +7,34 @@ export class ProductDetail extends BaseEntity {
   @Column({ name: 'product_id', unique: true })
   productId: number;
 
-  @Column({ name: 'current_stock', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'current_stock',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   currentStock: number;
 
   @Column({ name: 'stock_number', nullable: true })
   stockNumber: string;
 
-  @Column({ name: 'purchase_price', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'purchase_price',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   purchasePrice: number;
 
-  @Column({ name: 'sale_price', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'sale_price',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   salePrice: number;
 
   @Column({ name: 'expiry_date', type: 'timestamp', nullable: true })

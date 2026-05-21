@@ -35,31 +35,44 @@ export class PurchaseReturnRepository extends Repository<PurchaseReturn> {
     // Handle Filters
     if (filter) {
       if (filter.status && filter.status !== 'all') {
-        queryBuilder.andWhere('purchase_return.status = :status', { status: Number(filter.status) });
+        queryBuilder.andWhere('purchase_return.status = :status', {
+          status: Number(filter.status),
+        });
       }
       if (filter.supplierId) {
-        queryBuilder.andWhere('purchase_return.supplierId = :supplierId', { supplierId: Number(filter.supplierId) });
+        queryBuilder.andWhere('purchase_return.supplierId = :supplierId', {
+          supplierId: Number(filter.supplierId),
+        });
       }
-      
+
       // Business Date Range: returnDate
       if (filter.startDate) {
-        queryBuilder.andWhere('purchase_return.returnDate >= :startDate', { startDate: new Date(filter.startDate) });
+        queryBuilder.andWhere('purchase_return.returnDate >= :startDate', {
+          startDate: new Date(filter.startDate),
+        });
       }
       if (filter.endDate) {
         const endDate = new Date(filter.endDate);
         endDate.setHours(23, 59, 59, 999);
-        queryBuilder.andWhere('purchase_return.returnDate <= :endDate', { endDate });
+        queryBuilder.andWhere('purchase_return.returnDate <= :endDate', {
+          endDate,
+        });
       }
 
       // Filter by Invoice ID if provided
       if (filter.purchaseInvoiceId) {
-        queryBuilder.andWhere('purchase_return.purchaseInvoiceId = :purchaseInvoiceId', { purchaseInvoiceId: Number(filter.purchaseInvoiceId) });
+        queryBuilder.andWhere(
+          'purchase_return.purchaseInvoiceId = :purchaseInvoiceId',
+          { purchaseInvoiceId: Number(filter.purchaseInvoiceId) },
+        );
       }
     }
 
     if (sortBy && sortOrder) {
-      const orderColumn = sortBy.includes('.') ? sortBy : `purchase_return.${sortBy}`;
-      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
+      const orderColumn = sortBy.includes('.')
+        ? sortBy
+        : `purchase_return.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder);
     } else {
       queryBuilder.orderBy('purchase_return.createdAt', 'DESC');
     }

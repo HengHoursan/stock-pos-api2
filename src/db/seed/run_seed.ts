@@ -6,7 +6,7 @@ import { DataSource } from 'typeorm';
 async function bootstrap() {
   console.log('🌱 Starting standalone seeder...');
   const app = await NestFactory.createApplicationContext(AppModule);
-  
+
   try {
     const dataSource = app.get(DataSource);
     await runSeeds(dataSource);

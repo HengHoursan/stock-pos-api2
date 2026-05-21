@@ -21,15 +21,16 @@ export class DiscountRepository extends Repository<Discount> {
     let where: FindOptionsWhere<Discount> | FindOptionsWhere<Discount>[] = {};
 
     if (search && search.trim() !== '') {
-      where = [
-        { code: ILike(`%${search}%`) },
-      ];
+      where = [{ code: ILike(`%${search}%`) }];
     }
 
     if (filter && filter.status && filter.status !== 'all') {
       const statusValue = filter.status === 'active';
       if (Array.isArray(where)) {
-        where = where.map((condition) => ({ ...condition, status: statusValue }));
+        where = where.map((condition) => ({
+          ...condition,
+          status: statusValue,
+        }));
       } else {
         where.status = statusValue;
       }

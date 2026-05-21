@@ -34,18 +34,25 @@ export class PurchaseQuotationRepository extends Repository<PurchaseQuotation> {
     if (filter) {
       // quotationDate Range
       if (filter.startDate) {
-        queryBuilder.andWhere('purchase_quotation.quotationDate >= :startDate', { startDate: new Date(filter.startDate) });
+        queryBuilder.andWhere(
+          'purchase_quotation.quotationDate >= :startDate',
+          { startDate: new Date(filter.startDate) },
+        );
       }
       if (filter.endDate) {
         const endDate = new Date(filter.endDate);
         endDate.setHours(23, 59, 59, 999);
-        queryBuilder.andWhere('purchase_quotation.quotationDate <= :endDate', { endDate });
+        queryBuilder.andWhere('purchase_quotation.quotationDate <= :endDate', {
+          endDate,
+        });
       }
     }
 
     if (sortBy && sortOrder) {
-      const orderColumn = sortBy.includes('.') ? sortBy : `purchase_quotation.${sortBy}`;
-      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
+      const orderColumn = sortBy.includes('.')
+        ? sortBy
+        : `purchase_quotation.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder);
     } else {
       queryBuilder.orderBy('purchase_quotation.createdAt', 'DESC');
     }

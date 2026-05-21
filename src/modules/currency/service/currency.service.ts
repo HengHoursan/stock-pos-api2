@@ -15,19 +15,18 @@ import { generateCode } from '@/common/util/helper';
 
 @Injectable()
 export class CurrencyService {
-  constructor(
-    private readonly currencyRepository: CurrencyRepository,
-  ) {}
+  constructor(private readonly currencyRepository: CurrencyRepository) {}
 
   private async resetDefaults(exceptId?: number): Promise<void> {
-    const query = this.currencyRepository.createQueryBuilder()
+    const query = this.currencyRepository
+      .createQueryBuilder()
       .update(Currency)
       .set({ isDefault: false });
-    
+
     if (exceptId) {
       query.where('id != :exceptId', { exceptId });
     }
-    
+
     await query.execute();
   }
 
@@ -40,7 +39,9 @@ export class CurrencyService {
     // Check if code already exists
     const existingCode = await this.currencyRepository.findByCode(code);
     if (existingCode) {
-      throw new ConflictException(`Currency with code "${code}" already exists`);
+      throw new ConflictException(
+        `Currency with code "${code}" already exists`,
+      );
     }
 
     const currency = this.currencyRepository.create({
@@ -48,13 +49,13 @@ export class CurrencyService {
       createdBy: currentUserId,
       updatedBy: currentUserId,
     });
-    
+
     const saved = await this.currencyRepository.save(currency);
-    
+
     if (dto.isDefault) {
       await this.resetDefaults(saved.id);
     }
-    
+
     return saved;
   }
 
@@ -62,8 +63,9 @@ export class CurrencyService {
     pagination: PaginationRequest,
   ): Promise<[Currency[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.currencyRepository.findAllWithPagination(pagination);
-    
+    const [data, total] =
+      await this.currencyRepository.findAllWithPagination(pagination);
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -102,11 +104,11 @@ export class CurrencyService {
     currency.updatedBy = currentUserId;
 
     const saved = await this.currencyRepository.save(currency);
-    
+
     if (dto.isDefault) {
       await this.resetDefaults(saved.id);
     }
-    
+
     return saved;
   }
 

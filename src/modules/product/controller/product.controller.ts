@@ -30,8 +30,8 @@ export class ProductController {
   ) {
     const product = await this.productService.create(dto, userId);
     return ApiResponse.success(
-        plainToInstance(ProductResponse, product), 
-        'Product created successfully'
+      plainToInstance(ProductResponse, product),
+      'Product created successfully',
     );
   }
 
@@ -74,8 +74,8 @@ export class ProductController {
   ) {
     const product = await this.productService.update(dto, userId);
     return ApiResponse.success(
-        plainToInstance(ProductResponse, product), 
-        'Product updated successfully'
+      plainToInstance(ProductResponse, product),
+      'Product updated successfully',
     );
   }
 

@@ -53,6 +53,6 @@ export class JwtService {
   }
 
   decodeToken(token: string): Record<string, unknown> {
-    return this.jwtService.decode(token) as Record<string, unknown>;
+    return this.jwtService.decode(token);
   }
 }

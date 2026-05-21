@@ -13,7 +13,7 @@ import { PurchaseInvoiceModule } from '../purchase_invoice/purchase_invoice.modu
   imports: [
     TypeOrmModule.forFeature([PurchasePayment, PurchasePaymentDetail]),
     PurchaseOrderModule,
-    PurchaseInvoiceModule
+    PurchaseInvoiceModule,
   ],
   controllers: [PurchasePaymentController],
   providers: [PurchasePaymentRepository, PurchasePaymentService],

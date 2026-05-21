@@ -185,7 +185,7 @@ export class SaleReturnService {
             'IN',
             `Sale Return Update: ${saleReturn.code}`,
             currentUserId,
-            (saleReturn.returnDate as Date) || new Date(),
+            saleReturn.returnDate || new Date(),
           );
         }
 

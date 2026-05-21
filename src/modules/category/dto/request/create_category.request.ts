@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 
 export class CreateCategoryRequest {
   @IsString()
@@ -28,4 +34,4 @@ export class CreateCategoryRequest {
   @IsBoolean()
   @IsOptional()
   status: boolean = true;
-} 
+}

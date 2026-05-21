@@ -56,8 +56,9 @@ export class BrandService {
     pagination: PaginationRequest,
   ): Promise<[Brand[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.brandRepository.findAllWithPagination(pagination);
-    
+    const [data, total] =
+      await this.brandRepository.findAllWithPagination(pagination);
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -150,7 +151,7 @@ export class BrandService {
         const filenameWithExtension = parts.pop();
         const publicId = filenameWithExtension?.split('.')[0];
         const fullPublicId = `pos-uploads/${publicId}`;
-        
+
         await this.cloudinaryService.deleteImage(fullPublicId);
       } catch (error) {
         console.error('Failed to delete Brand image from Cloudinary:', error);
@@ -178,7 +179,8 @@ export class BrandService {
     ids: number[],
     currentUserId: number | null = null,
   ): Promise<void> {
-    const brands = await this.brandRepository.createQueryBuilder('b')
+    const brands = await this.brandRepository
+      .createQueryBuilder('b')
       .where('b.id IN (:...ids)', { ids })
       .getMany();
 

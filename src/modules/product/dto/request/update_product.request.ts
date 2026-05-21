@@ -1,11 +1,11 @@
-import { 
-  IsString, 
-  IsNotEmpty, 
-  IsNumber, 
-  IsOptional, 
-  IsBoolean, 
-  IsDateString, 
-  Min 
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  IsDateString,
+  Min,
 } from 'class-validator';
 
 export class UpdateProductRequest {

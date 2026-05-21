@@ -34,28 +34,39 @@ export class PurchasePaymentRepository extends Repository<PurchasePayment> {
     // Handle Filters
     if (filter) {
       if (filter.supplierId) {
-        queryBuilder.andWhere('purchase_payment.supplierId = :supplierId', { supplierId: Number(filter.supplierId) });
+        queryBuilder.andWhere('purchase_payment.supplierId = :supplierId', {
+          supplierId: Number(filter.supplierId),
+        });
       }
-      
+
       // Business Date Range: paymentDate
       if (filter.startDate) {
-        queryBuilder.andWhere('purchase_payment.paymentDate >= :startDate', { startDate: new Date(filter.startDate) });
+        queryBuilder.andWhere('purchase_payment.paymentDate >= :startDate', {
+          startDate: new Date(filter.startDate),
+        });
       }
       if (filter.endDate) {
         const endDate = new Date(filter.endDate);
         endDate.setHours(23, 59, 59, 999);
-        queryBuilder.andWhere('purchase_payment.paymentDate <= :endDate', { endDate });
+        queryBuilder.andWhere('purchase_payment.paymentDate <= :endDate', {
+          endDate,
+        });
       }
 
       // Filter by Invoice ID if provided
       if (filter.purchaseInvoiceId) {
-        queryBuilder.andWhere('details.purchaseInvoiceId = :purchaseInvoiceId', { purchaseInvoiceId: Number(filter.purchaseInvoiceId) });
+        queryBuilder.andWhere(
+          'details.purchaseInvoiceId = :purchaseInvoiceId',
+          { purchaseInvoiceId: Number(filter.purchaseInvoiceId) },
+        );
       }
     }
 
     if (sortBy && sortOrder) {
-      const orderColumn = sortBy.includes('.') ? sortBy : `purchase_payment.${sortBy}`;
-      queryBuilder.orderBy(orderColumn, sortOrder as 'ASC' | 'DESC');
+      const orderColumn = sortBy.includes('.')
+        ? sortBy
+        : `purchase_payment.${sortBy}`;
+      queryBuilder.orderBy(orderColumn, sortOrder);
     } else {
       queryBuilder.orderBy('purchase_payment.createdAt', 'DESC');
     }

@@ -14,7 +14,9 @@ export class SalePaymentDetail extends SoftDeleteEntity {
   @Column({ name: 'paid_amount', type: 'decimal', precision: 12, scale: 2 })
   paidAmount: number;
 
-  @ManyToOne(() => SalePayment, (payment) => payment.details, { onDelete: 'CASCADE' })
+  @ManyToOne(() => SalePayment, (payment) => payment.details, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'sale_payment_id' })
   salePayment: SalePayment;
 

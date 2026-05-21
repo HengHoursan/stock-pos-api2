@@ -27,7 +27,10 @@ export class SaleInvoiceController {
     @Body() dto: CreateSaleInvoiceRequest,
     @CurrentUser('id') userId: number,
   ) {
-    const { invoice, lowStockWarnings } = await this.saleInvoiceService.create(dto, userId);
+    const { invoice, lowStockWarnings } = await this.saleInvoiceService.create(
+      dto,
+      userId,
+    );
     return ApiResponse.success(
       {
         ...plainToInstance(SaleInvoiceResponse, invoice),
@@ -74,7 +77,10 @@ export class SaleInvoiceController {
     @Body() dto: UpdateSaleInvoiceRequest,
     @CurrentUser('id') userId: number,
   ) {
-    const { invoice, lowStockWarnings } = await this.saleInvoiceService.update(dto, userId);
+    const { invoice, lowStockWarnings } = await this.saleInvoiceService.update(
+      dto,
+      userId,
+    );
     return ApiResponse.success(
       {
         ...plainToInstance(SaleInvoiceResponse, invoice),
@@ -132,6 +138,9 @@ export class SaleInvoiceController {
       dto.status as any,
       userId,
     );
-    return ApiResponse.success(null, 'Sale Invoice statuses updated successfully');
+    return ApiResponse.success(
+      null,
+      'Sale Invoice statuses updated successfully',
+    );
   }
 }

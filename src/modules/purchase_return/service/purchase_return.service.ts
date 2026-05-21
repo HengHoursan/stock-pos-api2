@@ -34,7 +34,9 @@ export class PurchaseReturnService {
 
     const existingCode = await this.purchaseReturnRepository.findByCode(code);
     if (existingCode) {
-      throw new ConflictException(`Purchase Return with code "${code}" already exists`);
+      throw new ConflictException(
+        `Purchase Return with code "${code}" already exists`,
+      );
     }
 
     return await this.dataSource.transaction(async (manager) => {
@@ -96,7 +98,8 @@ export class PurchaseReturnService {
     pagination: PaginationRequest,
   ): Promise<[PurchaseReturn[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.purchaseReturnRepository.findAllWithPagination(pagination);
+    const [data, total] =
+      await this.purchaseReturnRepository.findAllWithPagination(pagination);
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -123,24 +126,31 @@ export class PurchaseReturnService {
     dto: UpdatePurchaseReturnRequest,
     currentUserId: number | null = null,
   ): Promise<PurchaseReturn> {
-    const purchaseReturn = await this.findOne(dto.id!);
+    const purchaseReturn = await this.findOne(dto.id);
 
     if (purchaseReturn.status !== InvoiceStatus.DRAFT) {
-      throw new BadRequestException('Cannot edit a purchase return that is not in DRAFT status');
+      throw new BadRequestException(
+        'Cannot edit a purchase return that is not in DRAFT status',
+      );
     }
 
     if (dto.code && dto.code !== purchaseReturn.code) {
       const existing = await this.purchaseReturnRepository.findByCode(dto.code);
       if (existing) {
-        throw new ConflictException(`Purchase Return with code "${dto.code}" already exists`);
+        throw new ConflictException(
+          `Purchase Return with code "${dto.code}" already exists`,
+        );
       }
     }
 
     return await this.dataSource.transaction(async (manager) => {
       if (dto.code) purchaseReturn.code = dto.code;
       if (dto.supplierId) purchaseReturn.supplierId = dto.supplierId;
-      if (dto.returnDate) purchaseReturn.returnDate = DateConvertor(dto.returnDate) || purchaseReturn.returnDate;
-      if (dto.description !== undefined) purchaseReturn.description = dto.description;
+      if (dto.returnDate)
+        purchaseReturn.returnDate =
+          DateConvertor(dto.returnDate) || purchaseReturn.returnDate;
+      if (dto.description !== undefined)
+        purchaseReturn.description = dto.description;
       purchaseReturn.updatedBy = currentUserId;
 
       if (dto.details) {
@@ -156,7 +166,9 @@ export class PurchaseReturnService {
           );
         }
 
-        await manager.delete(PurchaseReturnDetail, { purchaseReturnId: purchaseReturn.id });
+        await manager.delete(PurchaseReturnDetail, {
+          purchaseReturnId: purchaseReturn.id,
+        });
 
         let totalPrice = 0;
         for (const item of dto.details) {
@@ -217,7 +229,9 @@ export class PurchaseReturnService {
   ): Promise<PurchaseReturn> {
     const purchaseReturn = await this.findOne(id);
     if (purchaseReturn.status === InvoiceStatus.COMPLETED) {
-      throw new BadRequestException('Cannot cancel a completed purchase return');
+      throw new BadRequestException(
+        'Cannot cancel a completed purchase return',
+      );
     }
 
     return await this.dataSource.transaction(async (manager) => {

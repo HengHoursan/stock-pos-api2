@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { TransactionRepository } from '../repository/transaction.repository';
 import { ProductRepository } from '../../product/repository/product.repository';
@@ -32,7 +36,9 @@ export class TransactionService {
 
     const transactionCode = dto.transactionCode?.trim() || generateCode('TRX');
     if (await this.transactionRepository.findByCode(transactionCode)) {
-      throw new ConflictException(`Transaction with code "${transactionCode}" already exists`);
+      throw new ConflictException(
+        `Transaction with code "${transactionCode}" already exists`,
+      );
     }
 
     const beginningStock = Number(product.detail.currentStock);
@@ -40,8 +46,10 @@ export class TransactionService {
     let afterStock = beginningStock;
 
     if (dto.transactionType === TransactionType.IN) afterStock += quantity;
-    else if (dto.transactionType === TransactionType.OUT) afterStock -= quantity;
-    else if (dto.transactionType === TransactionType.ADJUSTMENT) afterStock = quantity;
+    else if (dto.transactionType === TransactionType.OUT)
+      afterStock -= quantity;
+    else if (dto.transactionType === TransactionType.ADJUSTMENT)
+      afterStock = quantity;
 
     return this.transactionRepository.createWithStockUpdate(
       {
@@ -62,8 +70,9 @@ export class TransactionService {
     pagination: PaginationRequest,
   ): Promise<[Transaction[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.transactionRepository.findAllWithPagination(pagination);
-    
+    const [data, total] =
+      await this.transactionRepository.findAllWithPagination(pagination);
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -84,14 +93,14 @@ export class TransactionService {
     currentUserId: number | null = null,
   ): Promise<Transaction> {
     const transaction = await this.findOne(dto.id);
-    
+
     if (dto.transactionDate) {
       const convertedDate = DateConvertor(dto.transactionDate);
       if (convertedDate) {
         transaction.transactionDate = convertedDate;
       }
     }
-    
+
     if (dto.remarks !== undefined) {
       transaction.remarks = dto.remarks;
     }

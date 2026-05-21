@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { RolePermission } from '@/role_permission/entity/role_permission.entity';
-import { AssignPermissionsRequest, RevokePermissionsRequest } from '@/role_permission/dto';
+import {
+  AssignPermissionsRequest,
+  RevokePermissionsRequest,
+} from '@/role_permission/dto';
 import { RolePermissionRepository } from '@/role_permission/repository/role_permission.repository';
 
 @Injectable()

@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { SalePaymentRepository } from '@/sale_payment/repository/sale_payment.repository';
-import { CreateSalePaymentRequest, UpdateSalePaymentRequest } from '@/sale_payment/dto';
+import {
+  CreateSalePaymentRequest,
+  UpdateSalePaymentRequest,
+} from '@/sale_payment/dto';
 import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { SalePayment } from '@/sale_payment/entity/sale_payment.entity';
 import { SalePaymentDetail } from '@/sale_payment/entity/sale_payment_detail.entity';
@@ -33,7 +36,9 @@ export class SalePaymentService {
 
     const existingCode = await this.salePaymentRepository.findByCode(code);
     if (existingCode) {
-      throw new ConflictException(`Sale Payment with code "${code}" already exists`);
+      throw new ConflictException(
+        `Sale Payment with code "${code}" already exists`,
+      );
     }
 
     return await this.dataSource.transaction(async (manager) => {
@@ -67,32 +72,43 @@ export class SalePaymentService {
             where: { id: item.saleInvoiceId },
           });
           if (invoice) {
-            invoice.paidAmount = Number(invoice.paidAmount) + Number(item.paidAmount);
-            
+            invoice.paidAmount =
+              Number(invoice.paidAmount) + Number(item.paidAmount);
+
             invoice.updatedBy = currentUserId;
             await manager.save(SaleInvoice, invoice);
-            
+
             // Automatic Status Update
             await this.saleInvoiceRepository.autoHealStatus(invoice, manager);
 
             // Trigger Order Healing
-            const invoiceDetails = await manager.createQueryBuilder('sale_invoice_details', 'sid')
-              .where('sid.sale_invoice_id = :invoiceId', { invoiceId: invoice.id })
+            const invoiceDetails = (await manager
+              .createQueryBuilder('sale_invoice_details', 'sid')
+              .where('sid.sale_invoice_id = :invoiceId', {
+                invoiceId: invoice.id,
+              })
               .andWhere('sid.sale_order_id IS NOT NULL')
-              .getRawMany();
+              .getRawMany()) as unknown as Array<{ sale_order_id: number }>;
 
-            const orderIds = [...new Set(invoiceDetails.map(d => d.sale_order_id))];
+            const orderIds = [
+              ...new Set(invoiceDetails.map((d) => d.sale_order_id)),
+            ];
             for (const orderId of orderIds) {
-              const order = await manager.findOne(SaleOrder, { 
+              const order = await manager.findOne(SaleOrder, {
                 where: { id: orderId },
-                relations: ['details'] 
+                relations: ['details'],
               });
               if (order) {
-                await this.saleOrderRepository.autoHealFulfillment(order);
+                await this.saleOrderRepository.autoHealFulfillment(
+                  order,
+                  manager,
+                );
               }
             }
           } else {
-            throw new NotFoundException(`Sale Invoice with id ${item.saleInvoiceId} not found`);
+            throw new NotFoundException(
+              `Sale Invoice with id ${item.saleInvoiceId} not found`,
+            );
           }
         }
       }
@@ -129,11 +145,11 @@ export class SalePaymentService {
     const payment = await this.salePaymentRepository.findOne({
       where: { id },
       relations: [
-        'customer', 
-        'details', 
-        'details.saleInvoice', 
-        'details.saleInvoice.details', 
-        'details.saleInvoice.details.product'
+        'customer',
+        'details',
+        'details.saleInvoice',
+        'details.saleInvoice.details',
+        'details.saleInvoice.details.product',
       ],
     });
     if (!payment) {
@@ -155,7 +171,9 @@ export class SalePaymentService {
     if (dto.code && dto.code !== payment.code) {
       const existing = await this.salePaymentRepository.findByCode(dto.code);
       if (existing) {
-        throw new ConflictException(`Sale Payment with code "${dto.code}" already exists`);
+        throw new ConflictException(
+          `Sale Payment with code "${dto.code}" already exists`,
+        );
       }
     }
 
@@ -166,8 +184,9 @@ export class SalePaymentService {
           where: { id: oldDetail.saleInvoiceId },
         });
         if (invoice) {
-          invoice.paidAmount = Number(invoice.paidAmount) - Number(oldDetail.paidAmount);
-          
+          invoice.paidAmount =
+            Number(invoice.paidAmount) - Number(oldDetail.paidAmount);
+
           invoice.updatedBy = currentUserId;
           await manager.save(SaleInvoice, invoice);
 
@@ -178,7 +197,9 @@ export class SalePaymentService {
 
       if (dto.code) payment.code = dto.code;
       if (dto.customerId) payment.customerId = dto.customerId;
-      if (dto.paymentDate) payment.paymentDate = DateConvertor(dto.paymentDate) || payment.paymentDate;
+      if (dto.paymentDate)
+        payment.paymentDate =
+          DateConvertor(dto.paymentDate) || payment.paymentDate;
       if (dto.description !== undefined) payment.description = dto.description;
       payment.updatedBy = currentUserId;
 
@@ -200,8 +221,9 @@ export class SalePaymentService {
             where: { id: item.saleInvoiceId },
           });
           if (invoice) {
-            invoice.paidAmount = Number(invoice.paidAmount) + Number(item.paidAmount);
-            
+            invoice.paidAmount =
+              Number(invoice.paidAmount) + Number(item.paidAmount);
+
             invoice.updatedBy = currentUserId;
             await manager.save(SaleInvoice, invoice);
 
@@ -209,19 +231,27 @@ export class SalePaymentService {
             await this.saleInvoiceRepository.autoHealStatus(invoice, manager);
 
             // Trigger Order Healing
-            const invoiceDetails = await manager.createQueryBuilder('sale_invoice_details', 'sid')
-              .where('sid.sale_invoice_id = :invoiceId', { invoiceId: invoice.id })
+            const invoiceDetails = (await manager
+              .createQueryBuilder('sale_invoice_details', 'sid')
+              .where('sid.sale_invoice_id = :invoiceId', {
+                invoiceId: invoice.id,
+              })
               .andWhere('sid.sale_order_id IS NOT NULL')
-              .getRawMany();
+              .getRawMany()) as unknown as Array<{ sale_order_id: number }>;
 
-            const orderIds = [...new Set(invoiceDetails.map(d => d.sale_order_id))];
+            const orderIds = [
+              ...new Set(invoiceDetails.map((d) => d.sale_order_id)),
+            ];
             for (const orderId of orderIds) {
-              const order = await manager.findOne(SaleOrder, { 
+              const order = await manager.findOne(SaleOrder, {
                 where: { id: orderId },
-                relations: ['details'] 
+                relations: ['details'],
               });
               if (order) {
-                await this.saleOrderRepository.autoHealFulfillment(order);
+                await this.saleOrderRepository.autoHealFulfillment(
+                  order,
+                  manager,
+                );
               }
             }
           }
@@ -258,8 +288,9 @@ export class SalePaymentService {
           where: { id: detail.saleInvoiceId },
         });
         if (invoice) {
-          invoice.paidAmount = Number(invoice.paidAmount) - Number(detail.paidAmount);
-          
+          invoice.paidAmount =
+            Number(invoice.paidAmount) - Number(detail.paidAmount);
+
           invoice.updatedBy = currentUserId;
           await manager.save(SaleInvoice, invoice);
 
@@ -267,19 +298,27 @@ export class SalePaymentService {
           await this.saleInvoiceRepository.autoHealStatus(invoice, manager);
 
           // Trigger Order Healing
-          const invoiceDetails = await manager.createQueryBuilder('sale_invoice_details', 'sid')
-            .where('sid.sale_invoice_id = :invoiceId', { invoiceId: invoice.id })
+          const invoiceDetails = (await manager
+            .createQueryBuilder('sale_invoice_details', 'sid')
+            .where('sid.sale_invoice_id = :invoiceId', {
+              invoiceId: invoice.id,
+            })
             .andWhere('sid.sale_order_id IS NOT NULL')
-            .getRawMany();
+            .getRawMany()) as unknown as Array<{ sale_order_id: number }>;
 
-          const orderIds = [...new Set(invoiceDetails.map(d => d.sale_order_id))];
+          const orderIds = [
+            ...new Set(invoiceDetails.map((d) => d.sale_order_id)),
+          ];
           for (const orderId of orderIds) {
-            const order = await manager.findOne(SaleOrder, { 
+            const order = await manager.findOne(SaleOrder, {
               where: { id: orderId },
-              relations: ['details'] 
+              relations: ['details'],
             });
             if (order) {
-              await this.saleOrderRepository.autoHealFulfillment(order, manager);
+              await this.saleOrderRepository.autoHealFulfillment(
+                order,
+                manager,
+              );
             }
           }
         }
@@ -301,7 +340,6 @@ export class SalePaymentService {
   }
 
   async forceDelete(id: number): Promise<void> {
-    const payment = await this.findOne(id);
     await this.dataSource.transaction(async (manager) => {
       // If it wasn't cancelled, we should ideally reverse it before deleting,
       // but forceDelete implies full removal. Standard practice is to cancel then delete.

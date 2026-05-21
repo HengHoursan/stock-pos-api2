@@ -17,7 +17,9 @@ import {
 
 @Controller('purchase-payments')
 export class PurchasePaymentController {
-  constructor(private readonly purchasePaymentService: PurchasePaymentService) {}
+  constructor(
+    private readonly purchasePaymentService: PurchasePaymentService,
+  ) {}
 
   @Post('create')
   @Permissions('purchase_payment:create')
@@ -48,7 +50,10 @@ export class PurchasePaymentController {
     const [data, meta] =
       await this.purchasePaymentService.findAllWithPagination(pagination);
     return ApiResponse.success(
-      new PaginationResponse(plainToInstance(PurchasePaymentResponse, data), meta),
+      new PaginationResponse(
+        plainToInstance(PurchasePaymentResponse, data),
+        meta,
+      ),
       'Purchase Payment list retrieved successfully',
     );
   }
@@ -90,7 +95,10 @@ export class PurchasePaymentController {
   @Permissions('purchase_payment:delete')
   async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
     await this.purchasePaymentService.softDelete(dto.id, userId);
-    return ApiResponse.success(null, 'Purchase Payment soft deleted successfully');
+    return ApiResponse.success(
+      null,
+      'Purchase Payment soft deleted successfully',
+    );
   }
 
   @Post('force-delete')

@@ -27,13 +27,17 @@ export class CustomerService {
     // Check if name or code already exists
     const existingName = await this.customerRepository.findByName(name);
     if (existingName) {
-      throw new ConflictException(`Customer with name "${name}" already exists`);
+      throw new ConflictException(
+        `Customer with name "${name}" already exists`,
+      );
     }
 
     if (code && code.trim() !== '') {
       const existingCode = await this.customerRepository.findByCode(code);
       if (existingCode) {
-        throw new ConflictException(`Customer with code "${code}" already exists`);
+        throw new ConflictException(
+          `Customer with code "${code}" already exists`,
+        );
       }
     }
 
@@ -50,8 +54,9 @@ export class CustomerService {
     pagination: PaginationRequest,
   ): Promise<[Customer[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.customerRepository.findAllWithPagination(pagination);
-    
+    const [data, total] =
+      await this.customerRepository.findAllWithPagination(pagination);
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -142,7 +147,8 @@ export class CustomerService {
     ids: number[],
     currentUserId: number | null = null,
   ): Promise<void> {
-    const customers = await this.customerRepository.createQueryBuilder('c')
+    const customers = await this.customerRepository
+      .createQueryBuilder('c')
       .where('c.id IN (:...ids)', { ids })
       .getMany();
 

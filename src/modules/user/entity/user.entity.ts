@@ -1,5 +1,8 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { BaseEntity, SoftDeleteEntity } from '../../../common/entity/base.entity';
+import {
+  BaseEntity,
+  SoftDeleteEntity,
+} from '../../../common/entity/base.entity';
 import { Role } from '../../role/entity/role.entity';
 
 @Entity('users')

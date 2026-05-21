@@ -11,7 +11,17 @@ import { ProductDetailRepository } from './repository/product-detail.repository'
 @Module({
   imports: [TypeOrmModule.forFeature([Product, ProductDetail])],
   controllers: [ProductController],
-  providers: [ProductService, StockService, ProductRepository, ProductDetailRepository],
-  exports: [ProductService, StockService, ProductRepository, ProductDetailRepository],
+  providers: [
+    ProductService,
+    StockService,
+    ProductRepository,
+    ProductDetailRepository,
+  ],
+  exports: [
+    ProductService,
+    StockService,
+    ProductRepository,
+    ProductDetailRepository,
+  ],
 })
 export class ProductModule {}

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ActivityLogModule } from '../activity_log/activity_log.module';
 import { UserModule } from '../user/user.module';
 import { RoleModule } from '../role/role.module';
 import { PermissionModule } from '../permission/permission.module';
@@ -60,6 +61,7 @@ import { ReportModule } from '../report/report.module';
     CustomerModule,
     SupplierModule,
     ReportModule,
+    ActivityLogModule,
   ],
   exports: [
     UserModule,
@@ -91,6 +93,7 @@ import { ReportModule } from '../report/report.module';
     CustomerModule,
     SupplierModule,
     ReportModule,
+    ActivityLogModule,
   ],
 })
 export class CoreModule {}

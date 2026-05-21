@@ -49,7 +49,10 @@ export class PurchaseReturnController {
     const [data, meta] =
       await this.purchaseReturnService.findAllWithPagination(pagination);
     return ApiResponse.success(
-      new PaginationResponse(plainToInstance(PurchaseReturnResponse, data), meta),
+      new PaginationResponse(
+        plainToInstance(PurchaseReturnResponse, data),
+        meta,
+      ),
       'Purchase Return list retrieved successfully',
     );
   }
@@ -83,7 +86,10 @@ export class PurchaseReturnController {
     @Body() dto: UpdatePurchaseReturnStatusRequest,
     @CurrentUser('id') userId: number,
   ) {
-    const purchaseReturn = await this.purchaseReturnService.updateStatus(dto, userId);
+    const purchaseReturn = await this.purchaseReturnService.updateStatus(
+      dto,
+      userId,
+    );
     return ApiResponse.success(
       plainToInstance(PurchaseReturnResponse, purchaseReturn),
       'Purchase Return status updated successfully',
@@ -104,7 +110,10 @@ export class PurchaseReturnController {
   @Permissions('purchase_return:delete')
   async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
     await this.purchaseReturnService.softDelete(dto.id, userId);
-    return ApiResponse.success(null, 'Purchase Return soft deleted successfully');
+    return ApiResponse.success(
+      null,
+      'Purchase Return soft deleted successfully',
+    );
   }
 
   @Post('force-delete')

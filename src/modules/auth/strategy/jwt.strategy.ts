@@ -26,13 +26,16 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (!token) throw new UnauthorizedException();
 
     const blacklisted = await this.tokenBlacklistService.isBlacklisted(token);
-    if (blacklisted) throw new UnauthorizedException('Your token has been revoked');
+    if (blacklisted)
+      throw new UnauthorizedException('Your token has been revoked');
 
     const user = await this.userService.findByEmail(payload.email);
     if (!user) throw new UnauthorizedException();
 
     const permissions =
-      user.role?.rolePermissions?.map((rp) => rp.permission?.name).filter(Boolean) || [];
+      user.role?.rolePermissions
+        ?.map((rp) => rp.permission?.name)
+        .filter(Boolean) || [];
 
     return {
       id: user.id,

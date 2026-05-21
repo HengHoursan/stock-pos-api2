@@ -2,17 +2,21 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Permission } from '@/permission/entity/permission.entity';
-import { CreatePermissionRequest, UpdatePermissionRequest } from '@/permission/dto';
+import {
+  CreatePermissionRequest,
+  UpdatePermissionRequest,
+} from '@/permission/dto';
 import { PaginationRequest, PaginationMeta } from '@/common/dto';
 import { PermissionRepository } from '@/permission/repository/permission.repository';
 
 @Injectable()
 export class PermissionService {
-  constructor(
-    private readonly permissionRepository: PermissionRepository,
-  ) {}
+  constructor(private readonly permissionRepository: PermissionRepository) {}
 
-  async create(dto: CreatePermissionRequest, currentUserId: number | null = null): Promise<Permission> {
+  async create(
+    dto: CreatePermissionRequest,
+    currentUserId: number | null = null,
+  ): Promise<Permission> {
     const permission = this.permissionRepository.create({
       ...dto,
       createdBy: currentUserId,
@@ -25,8 +29,9 @@ export class PermissionService {
     pagination: PaginationRequest,
   ): Promise<[Permission[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.permissionRepository.findAllWithPagination(pagination);
-    
+    const [data, total] =
+      await this.permissionRepository.findAllWithPagination(pagination);
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -46,14 +51,20 @@ export class PermissionService {
     return permission;
   }
 
-  async update(dto: UpdatePermissionRequest, currentUserId: number | null = null): Promise<Permission> {
+  async update(
+    dto: UpdatePermissionRequest,
+    currentUserId: number | null = null,
+  ): Promise<Permission> {
     const permission = await this.findOne(dto.id);
     Object.assign(permission, dto);
     permission.updatedBy = currentUserId;
     return this.permissionRepository.save(permission);
   }
 
-  async softDelete(id: number, currentUserId: number | null = null): Promise<void> {
+  async softDelete(
+    id: number,
+    currentUserId: number | null = null,
+  ): Promise<void> {
     const permission = await this.findOne(id);
     permission.deletedBy = currentUserId;
     await this.permissionRepository.save(permission);

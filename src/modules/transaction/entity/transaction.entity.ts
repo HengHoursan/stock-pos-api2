@@ -22,13 +22,25 @@ export class Transaction extends SoftDeleteEntity {
   @Column({ name: 'product_id' })
   productId: number;
 
-  @Column({ name: 'beginning_stock', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'beginning_stock',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   beginningStock: number;
 
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   quantity: number;
 
-  @Column({ name: 'after_stock', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'after_stock',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   afterStock: number;
 
   @Column({ type: 'text', nullable: true })

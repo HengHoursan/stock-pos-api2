@@ -18,7 +18,8 @@ export class PermissionRepository extends Repository<Permission> {
   ): Promise<[Permission[], number]> {
     const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
-    let where: FindOptionsWhere<Permission> | FindOptionsWhere<Permission>[] = {};
+    let where: FindOptionsWhere<Permission> | FindOptionsWhere<Permission>[] =
+      {};
 
     if (search && search.trim() !== '') {
       where = [
@@ -31,7 +32,10 @@ export class PermissionRepository extends Repository<Permission> {
     if (filter && filter.status && filter.status !== 'all') {
       const statusValue = filter.status === 'active';
       if (Array.isArray(where)) {
-        where = where.map((condition) => ({ ...condition, status: statusValue }));
+        where = where.map((condition) => ({
+          ...condition,
+          status: statusValue,
+        }));
       } else {
         where.status = statusValue;
       }

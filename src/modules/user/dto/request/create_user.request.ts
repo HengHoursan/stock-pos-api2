@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, IsEmail, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsEmail,
+  IsNumber,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateUserRequest {
   @IsNotEmpty()

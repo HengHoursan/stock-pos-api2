@@ -49,7 +49,10 @@ export class SaleQuotationController {
     const [data, meta] =
       await this.saleQuotationService.findAllWithPagination(pagination);
     return ApiResponse.success(
-      new PaginationResponse(plainToInstance(SaleQuotationResponse, data), meta),
+      new PaginationResponse(
+        plainToInstance(SaleQuotationResponse, data),
+        meta,
+      ),
       'Sale Quotation list retrieved successfully',
     );
   }
@@ -81,7 +84,10 @@ export class SaleQuotationController {
   @Permissions('sale_quotation:delete')
   async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
     await this.saleQuotationService.softDelete(dto.id, userId);
-    return ApiResponse.success(null, 'Sale Quotation soft deleted successfully');
+    return ApiResponse.success(
+      null,
+      'Sale Quotation soft deleted successfully',
+    );
   }
 
   @Post('force-delete')

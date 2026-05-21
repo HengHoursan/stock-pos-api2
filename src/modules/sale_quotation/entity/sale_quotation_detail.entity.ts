@@ -20,7 +20,9 @@ export class SaleQuotationDetail extends SoftDeleteEntity {
   @Column({ name: 'total_price', type: 'decimal', precision: 12, scale: 2 })
   totalPrice: number;
 
-  @ManyToOne(() => SaleQuotation, (quotation) => quotation.details, { onDelete: 'CASCADE' })
+  @ManyToOne(() => SaleQuotation, (quotation) => quotation.details, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'sale_quotation_id' })
   saleQuotation: SaleQuotation;
 

@@ -1,5 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { DataSource, Repository, ILike, FindOptionsWhere, EntityManager } from 'typeorm';
+import {
+  DataSource,
+  Repository,
+  ILike,
+  FindOptionsWhere,
+  EntityManager,
+} from 'typeorm';
 import { Transaction } from '../entity/transaction.entity';
 import { PaginationRequest } from '@/common/dto';
 import { ProductDetail } from '@/product/entity/product_detail.entity';
@@ -22,11 +28,17 @@ export class TransactionRepository extends Repository<Transaction> {
         const savedTransaction = await manager.save(Transaction, transaction);
 
         // 2. Update Product Stock
-        await manager.update(ProductDetail, { productId }, { currentStock: newStock });
+        await manager.update(
+          ProductDetail,
+          { productId },
+          { currentStock: newStock },
+        );
 
         return savedTransaction;
       } catch (error) {
-        throw new InternalServerErrorException('Failed to process stock transaction: ' + error.message);
+        throw new InternalServerErrorException(
+          'Failed to process stock transaction: ' + error.message,
+        );
       }
     });
   }
@@ -36,10 +48,11 @@ export class TransactionRepository extends Repository<Transaction> {
   ): Promise<[Transaction[], number]> {
     const { page, limit, sortBy, sortOrder, search, filter } = pagination;
 
-    let where: FindOptionsWhere<Transaction> | FindOptionsWhere<Transaction>[] = {};
+    let where: FindOptionsWhere<Transaction> | FindOptionsWhere<Transaction>[] =
+      {};
 
     const baseConditions: FindOptionsWhere<Transaction> = {};
-    
+
     if (filter) {
       if (filter.productId) {
         baseConditions.productId = Number(filter.productId);

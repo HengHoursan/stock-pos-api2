@@ -10,11 +10,7 @@ import { SaleOrderController } from './controller/sale_order.controller';
 @Module({
   imports: [TypeOrmModule.forFeature([SaleOrder, SaleOrderDetail])],
   controllers: [SaleOrderController],
-  providers: [
-    SaleOrderService,
-    SaleOrderRepository,
-    SaleOrderDetailRepository,
-  ],
+  providers: [SaleOrderService, SaleOrderRepository, SaleOrderDetailRepository],
   exports: [SaleOrderService, SaleOrderRepository, SaleOrderDetailRepository],
 })
 export class SaleOrderModule {}

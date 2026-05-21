@@ -1,12 +1,12 @@
-import { 
-  IsString, 
-  IsNotEmpty, 
-  IsNumber, 
-  IsOptional, 
-  IsBoolean, 
-  IsEnum, 
-  IsDateString, 
-  Min 
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  IsEnum,
+  IsDateString,
+  Min,
 } from 'class-validator';
 
 export class CreateProductRequest {

@@ -7,11 +7,13 @@ import { SaleInvoiceDetailRepository } from './repository/sale_invoice_detail.re
 import { SaleInvoiceService } from './service/sale_invoice.service';
 import { SaleInvoiceController } from './controller/sale_invoice.controller';
 import { ProductModule } from '../product/product.module';
+import { SaleOrderModule } from '../sale_order/sale_order.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([SaleInvoice, SaleInvoiceDetail]),
     ProductModule,
+    SaleOrderModule,
   ],
   controllers: [SaleInvoiceController],
   providers: [
@@ -19,6 +21,10 @@ import { ProductModule } from '../product/product.module';
     SaleInvoiceRepository,
     SaleInvoiceDetailRepository,
   ],
-  exports: [SaleInvoiceService, SaleInvoiceRepository, SaleInvoiceDetailRepository],
+  exports: [
+    SaleInvoiceService,
+    SaleInvoiceRepository,
+    SaleInvoiceDetailRepository,
+  ],
 })
 export class SaleInvoiceModule {}

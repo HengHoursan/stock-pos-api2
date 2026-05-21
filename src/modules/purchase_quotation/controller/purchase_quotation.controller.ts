@@ -18,7 +18,9 @@ import {
 
 @Controller('purchase-quotations')
 export class PurchaseQuotationController {
-  constructor(private readonly purchaseQuotationService: PurchaseQuotationService) {}
+  constructor(
+    private readonly purchaseQuotationService: PurchaseQuotationService,
+  ) {}
 
   @Post('create')
   @Permissions('purchase_quotation:create')
@@ -49,7 +51,10 @@ export class PurchaseQuotationController {
     const [data, meta] =
       await this.purchaseQuotationService.findAllWithPagination(pagination);
     return ApiResponse.success(
-      new PaginationResponse(plainToInstance(PurchaseQuotationResponse, data), meta),
+      new PaginationResponse(
+        plainToInstance(PurchaseQuotationResponse, data),
+        meta,
+      ),
       'Purchase Quotation list retrieved successfully',
     );
   }
@@ -81,7 +86,10 @@ export class PurchaseQuotationController {
   @Permissions('purchase_quotation:delete')
   async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
     await this.purchaseQuotationService.softDelete(dto.id, userId);
-    return ApiResponse.success(null, 'Purchase Quotation soft deleted successfully');
+    return ApiResponse.success(
+      null,
+      'Purchase Quotation soft deleted successfully',
+    );
   }
 
   @Post('force-delete')
@@ -94,8 +102,10 @@ export class PurchaseQuotationController {
   @Post('duplicate')
   @Permissions('purchase_quotation:create')
   async duplicate(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
-    const quotation =
-      await this.purchaseQuotationService.duplicate(dto.id, userId);
+    const quotation = await this.purchaseQuotationService.duplicate(
+      dto.id,
+      userId,
+    );
     return ApiResponse.success(
       plainToInstance(PurchaseQuotationResponse, quotation),
       'Purchase Quotation duplicated successfully',
@@ -109,6 +119,9 @@ export class PurchaseQuotationController {
     @CurrentUser('id') userId: number,
   ) {
     await this.purchaseQuotationService.bulkSoftDelete(dto.ids, userId);
-    return ApiResponse.success(null, 'Purchase Quotations deleted successfully');
+    return ApiResponse.success(
+      null,
+      'Purchase Quotations deleted successfully',
+    );
   }
 }

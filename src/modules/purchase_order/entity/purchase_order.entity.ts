@@ -18,7 +18,13 @@ export class PurchaseOrder extends SoftDeleteEntity {
   @Column({ name: 'total_close_line', type: 'int', default: 0 })
   totalCloseLine: number;
 
-  @Column({ name: 'total_price', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'total_price',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   totalPrice: number;
 
   @Column({
@@ -40,6 +46,8 @@ export class PurchaseOrder extends SoftDeleteEntity {
   @JoinColumn({ name: 'supplier_id' })
   supplier: Supplier;
 
-  @OneToMany(() => PurchaseOrderDetail, (detail) => detail.purchaseOrder, { cascade: true })
+  @OneToMany(() => PurchaseOrderDetail, (detail) => detail.purchaseOrder, {
+    cascade: true,
+  })
   details: PurchaseOrderDetail[];
 }

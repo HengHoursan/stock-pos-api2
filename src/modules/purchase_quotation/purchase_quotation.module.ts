@@ -8,13 +8,19 @@ import { PurchaseQuotationService } from './service/purchase_quotation.service';
 import { PurchaseQuotationController } from './controller/purchase_quotation.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PurchaseQuotation, PurchaseQuotationDetail])],
+  imports: [
+    TypeOrmModule.forFeature([PurchaseQuotation, PurchaseQuotationDetail]),
+  ],
   controllers: [PurchaseQuotationController],
   providers: [
     PurchaseQuotationService,
     PurchaseQuotationRepository,
     PurchaseQuotationDetailRepository,
   ],
-  exports: [PurchaseQuotationService, PurchaseQuotationRepository, PurchaseQuotationDetailRepository],
+  exports: [
+    PurchaseQuotationService,
+    PurchaseQuotationRepository,
+    PurchaseQuotationDetailRepository,
+  ],
 })
 export class PurchaseQuotationModule {}

@@ -27,13 +27,17 @@ export class SupplierService {
     // Check if name or code already exists
     const existingName = await this.supplierRepository.findByName(name);
     if (existingName) {
-      throw new ConflictException(`Supplier with name "${name}" already exists`);
+      throw new ConflictException(
+        `Supplier with name "${name}" already exists`,
+      );
     }
 
     if (code && code.trim() !== '') {
       const existingCode = await this.supplierRepository.findByCode(code);
       if (existingCode) {
-        throw new ConflictException(`Supplier with code "${code}" already exists`);
+        throw new ConflictException(
+          `Supplier with code "${code}" already exists`,
+        );
       }
     }
 
@@ -50,8 +54,9 @@ export class SupplierService {
     pagination: PaginationRequest,
   ): Promise<[Supplier[], PaginationMeta]> {
     const { page, limit, sortBy, sortOrder } = pagination;
-    const [data, total] = await this.supplierRepository.findAllWithPagination(pagination);
-    
+    const [data, total] =
+      await this.supplierRepository.findAllWithPagination(pagination);
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -142,7 +147,8 @@ export class SupplierService {
     ids: number[],
     currentUserId: number | null = null,
   ): Promise<void> {
-    const suppliers = await this.supplierRepository.createQueryBuilder('s')
+    const suppliers = await this.supplierRepository
+      .createQueryBuilder('s')
       .where('s.id IN (:...ids)', { ids })
       .getMany();
 

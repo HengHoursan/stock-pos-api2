@@ -19,7 +19,9 @@ import {
 
 @Controller('purchase-invoices')
 export class PurchaseInvoiceController {
-  constructor(private readonly purchaseInvoiceService: PurchaseInvoiceService) {}
+  constructor(
+    private readonly purchaseInvoiceService: PurchaseInvoiceService,
+  ) {}
 
   @Post('create')
   @Permissions('purchase_invoice:create')
@@ -50,7 +52,10 @@ export class PurchaseInvoiceController {
     const [data, meta] =
       await this.purchaseInvoiceService.findAllWithPagination(pagination);
     return ApiResponse.success(
-      new PaginationResponse(plainToInstance(PurchaseInvoiceResponse, data), meta),
+      new PaginationResponse(
+        plainToInstance(PurchaseInvoiceResponse, data),
+        meta,
+      ),
       'Purchase Invoice list retrieved successfully',
     );
   }
@@ -105,7 +110,10 @@ export class PurchaseInvoiceController {
   @Permissions('purchase_invoice:delete')
   async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
     await this.purchaseInvoiceService.softDelete(dto.id, userId);
-    return ApiResponse.success(null, 'Purchase Invoice soft deleted successfully');
+    return ApiResponse.success(
+      null,
+      'Purchase Invoice soft deleted successfully',
+    );
   }
 
   @Post('force-delete')

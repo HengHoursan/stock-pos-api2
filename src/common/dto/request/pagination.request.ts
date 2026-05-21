@@ -1,4 +1,12 @@
-import { IsOptional, IsInt, Min, IsString, IsObject, Max, IsIn } from 'class-validator';
+import {
+  IsOptional,
+  IsInt,
+  Min,
+  IsString,
+  IsObject,
+  Max,
+  IsIn,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
 export class PaginationRequest {

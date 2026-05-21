@@ -51,7 +51,10 @@ export class PurchaseOrderController {
     const [data, meta] =
       await this.purchaseOrderService.findAllWithPagination(pagination);
     return ApiResponse.success(
-      new PaginationResponse(plainToInstance(PurchaseOrderResponse, data), meta),
+      new PaginationResponse(
+        plainToInstance(PurchaseOrderResponse, data),
+        meta,
+      ),
       'Purchase Order list retrieved successfully',
     );
   }
@@ -106,7 +109,10 @@ export class PurchaseOrderController {
   @Permissions('purchase_order:delete')
   async softDelete(@Body() dto: IdRequest, @CurrentUser('id') userId: number) {
     await this.purchaseOrderService.softDelete(dto.id, userId);
-    return ApiResponse.success(null, 'Purchase Order soft deleted successfully');
+    return ApiResponse.success(
+      null,
+      'Purchase Order soft deleted successfully',
+    );
   }
 
   @Post('force-delete')

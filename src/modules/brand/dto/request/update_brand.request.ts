@@ -1,4 +1,10 @@
-import { IsNumber, IsOptional, IsString, IsBoolean, IsNotEmpty } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsBoolean,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class UpdateBrandRequest {
   @IsNumber()

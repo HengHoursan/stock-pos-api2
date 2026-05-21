@@ -1,4 +1,10 @@
-import { Entity, ManyToOne, JoinColumn, CreateDateColumn, PrimaryColumn } from 'typeorm';
+import {
+  Entity,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  PrimaryColumn,
+} from 'typeorm';
 import { Role } from '../../role/entity/role.entity';
 import { Permission } from '../../permission/entity/permission.entity';
 
@@ -10,11 +16,15 @@ export class RolePermission {
   @PrimaryColumn({ name: 'permission_id' })
   permissionId: number;
 
-  @ManyToOne(() => Role, (role) => role.rolePermissions, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Role, (role) => role.rolePermissions, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'role_id' })
   role: Role;
 
-  @ManyToOne(() => Permission, (permission) => permission.rolePermissions, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Permission, (permission) => permission.rolePermissions, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'permission_id' })
   permission: Permission;
 

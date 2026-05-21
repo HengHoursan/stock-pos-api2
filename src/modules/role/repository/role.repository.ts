@@ -30,7 +30,10 @@ export class RoleRepository extends Repository<Role> {
     if (filter && filter.status && filter.status !== 'all') {
       const statusValue = filter.status === 'active';
       if (Array.isArray(where)) {
-        where = where.map((condition) => ({ ...condition, status: statusValue }));
+        where = where.map((condition) => ({
+          ...condition,
+          status: statusValue,
+        }));
       } else {
         where.status = statusValue;
       }

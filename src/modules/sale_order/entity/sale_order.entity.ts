@@ -18,8 +18,32 @@ export class SaleOrder extends SoftDeleteEntity {
   @Column({ name: 'total_close_line', type: 'int', default: 0 })
   totalCloseLine: number;
 
-  @Column({ name: 'total_price', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'total_price',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   totalPrice: number;
+
+  @Column({
+    name: 'invoiced_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
+  invoicedAmount: number;
+
+  @Column({
+    name: 'paid_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
+  paidAmount: number;
 
   @Column({
     type: 'int',
@@ -40,6 +64,8 @@ export class SaleOrder extends SoftDeleteEntity {
   @JoinColumn({ name: 'customer_id' })
   customer: Customer;
 
-  @OneToMany(() => SaleOrderDetail, (detail) => detail.saleOrder, { cascade: true })
+  @OneToMany(() => SaleOrderDetail, (detail) => detail.saleOrder, {
+    cascade: true,
+  })
   details: SaleOrderDetail[];
 }

@@ -6,7 +6,7 @@ import { seedData } from './data_seed';
 
 export const runSeeds = async (dataSource: DataSource) => {
   console.log('🚀 Starting Seeding...');
-  
+
   // Step 1 – Core access-control seeds (permissions → roles → users)
   await seedPermissions(dataSource);
   await seedRoles(dataSource);
@@ -14,6 +14,6 @@ export const runSeeds = async (dataSource: DataSource) => {
 
   // Step 2 – Business data seeds (categories → products → invoices → transactions)
   await seedData(dataSource);
-  
+
   console.log('🏁 Seeding Completed!');
 };

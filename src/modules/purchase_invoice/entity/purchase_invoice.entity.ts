@@ -16,10 +16,22 @@ export class PurchaseInvoice extends SoftDeleteEntity {
   @Column({ name: 'total_line', type: 'int', default: 0 })
   totalLine: number;
 
-  @Column({ name: 'total_price', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'total_price',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   totalPrice: number;
 
-  @Column({ name: 'paid_amount', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'paid_amount',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   paidAmount: number;
 
   @Column({
@@ -48,6 +60,8 @@ export class PurchaseInvoice extends SoftDeleteEntity {
   @JoinColumn({ name: 'supplier_id' })
   supplier: Supplier;
 
-  @OneToMany(() => PurchaseInvoiceDetail, (detail) => detail.purchaseInvoice, { cascade: true })
+  @OneToMany(() => PurchaseInvoiceDetail, (detail) => detail.purchaseInvoice, {
+    cascade: true,
+  })
   details: PurchaseInvoiceDetail[];
 }

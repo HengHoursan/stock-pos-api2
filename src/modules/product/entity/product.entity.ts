@@ -22,7 +22,13 @@ export class Product extends SoftDeleteEntity {
   @Column({ name: 'unit_id' })
   unitId: number;
 
-  @Column({ name: 'alert_quantity', type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({
+    name: 'alert_quantity',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
   alertQuantity: number;
 
   @Column({ name: 'sku_code', nullable: true, unique: true })
