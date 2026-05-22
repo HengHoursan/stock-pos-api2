@@ -96,8 +96,22 @@ export class PurchaseInvoiceRepository extends Repository<PurchaseInvoice> {
     if (!currentInvoice) return;
 
     if (currentInvoice.isCancel) {
+      currentInvoice.paidAmount = 0;
       currentInvoice.status = InvoiceStatus.CANCELLED;
     } else {
+      const paymentResult = (await mgr
+        .createQueryBuilder()
+        .select('SUM(ppd.total_price)', 'paidAmount')
+        .from('purchase_payment_details', 'ppd')
+        .innerJoin('purchase_payments', 'pp', 'pp.id = ppd.purchase_payment_id')
+        .where('ppd.purchase_invoice_id = :invoiceId', { invoiceId: invoice.id })
+        .andWhere('pp.is_cancel = false')
+        .andWhere('pp.deleted_at IS NULL')
+        .andWhere('ppd.deleted_at IS NULL')
+        .getRawOne()) as unknown as { paidAmount: string | null } | undefined;
+
+      currentInvoice.paidAmount = Number(paymentResult?.paidAmount || 0);
+
       const paidAmount = Number(currentInvoice.paidAmount || 0);
       const totalPrice = Number(currentInvoice.totalPrice || 0);
 

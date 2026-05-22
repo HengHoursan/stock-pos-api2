@@ -16,7 +16,7 @@ export class PurchasePaymentDetail extends SoftDeleteEntity {
     scale: 2,
     default: 0,
   })
-  totalPrice: number;
+  paidAmount: number;
 
   @Column({ name: 'purchase_invoice_id', nullable: true })
   purchaseInvoiceId: number | null;

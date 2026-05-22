@@ -334,9 +334,7 @@ export class SaleInvoiceService {
     currentUserId: number | null = null,
   ): Promise<SaleInvoice> {
     const invoice = await this.findOne(id);
-    if (invoice.status === InvoiceStatus.COMPLETED) {
-      throw new BadRequestException('Cannot cancel a completed sale invoice');
-    }
+    if (invoice.isCancel) return invoice;
 
     return await this.dataSource.transaction(async (manager) => {
       invoice.isCancel = true;
@@ -380,14 +378,20 @@ export class SaleInvoiceService {
     id: number,
     currentUserId: number | null = null,
   ): Promise<void> {
-    const invoice = await this.findOne(id);
+    let invoice = await this.findOne(id);
+    if (!invoice.isCancel) {
+      invoice = await this.cancel(id, currentUserId);
+    }
     invoice.deletedBy = currentUserId;
     await this.saleInvoiceRepository.save(invoice);
     await this.saleInvoiceRepository.softRemove(invoice);
   }
 
   async forceDelete(id: number): Promise<void> {
-    await this.findOne(id);
+    const invoice = await this.findOne(id);
+    if (!invoice.isCancel) {
+      await this.cancel(id, null);
+    }
     await this.dataSource.transaction(async (manager) => {
       await manager.delete(SaleInvoiceDetail, { saleInvoiceId: id });
       await manager.delete(SaleInvoice, id);

@@ -114,8 +114,44 @@ export class TransactionService {
     currentUserId: number | null = null,
   ): Promise<void> {
     const transaction = await this.findOne(id);
-    transaction.deletedBy = currentUserId;
-    await this.transactionRepository.save(transaction);
-    await this.transactionRepository.softRemove(transaction);
+
+    await this.dataSource.transaction(async (manager) => {
+      const detail = await manager.findOne(ProductDetail, {
+        where: { productId: transaction.productId },
+      });
+
+      if (detail) {
+        const currentStock = Number(detail.currentStock || 0);
+        const originalDelta =
+          Number(transaction.afterStock || 0) -
+          Number(transaction.beginningStock || 0);
+        const restoredStock = Math.max(0, currentStock - originalDelta);
+
+        await manager.update(
+          ProductDetail,
+          { productId: transaction.productId },
+          { currentStock: restoredStock, updatedBy: currentUserId },
+        );
+
+        const reversal = manager.create(Transaction, {
+          transactionCode: generateCode('TRX'),
+          transactionDate: new Date(),
+          transactionType:
+            originalDelta >= 0 ? TransactionType.OUT : TransactionType.IN,
+          productId: transaction.productId,
+          beginningStock: currentStock,
+          quantity: Math.abs(originalDelta),
+          afterStock: restoredStock,
+          remarks: `Reversed - Deleted Transaction: ${transaction.transactionCode}`,
+          createdBy: currentUserId,
+          updatedBy: currentUserId,
+        });
+        await manager.save(Transaction, reversal);
+      }
+
+      transaction.deletedBy = currentUserId;
+      await manager.save(Transaction, transaction);
+      await manager.softRemove(Transaction, transaction);
+    });
   }
 }

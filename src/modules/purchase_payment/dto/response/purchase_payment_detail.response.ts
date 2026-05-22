@@ -9,7 +9,7 @@ export class PurchasePaymentDetailResponse {
   purchasePaymentId: number;
 
   @Expose()
-  totalPrice: number;
+  paidAmount: number;
 
   @Expose()
   purchaseInvoiceId: number | null;

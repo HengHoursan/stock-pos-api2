@@ -12,8 +12,14 @@ import { Type } from 'class-transformer';
 
 export class CreatePurchasePaymentDetailItem {
   @IsNumber()
+  @IsOptional()
   @Min(0)
-  totalPrice: number;
+  paidAmount?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  totalPrice?: number;
 
   @IsNumber()
   @IsOptional()

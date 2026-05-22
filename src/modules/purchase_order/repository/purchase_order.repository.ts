@@ -89,7 +89,7 @@ export class PurchaseOrderRepository extends Repository<PurchaseOrder> {
     manager?: EntityManager,
   ): Promise<void> {
     const mgr = manager || this.manager;
-    if (order.status === OrderStatus.COMPLETED || order.isCancel) return;
+    if (order.isCancel) return;
 
     const { PurchaseInvoiceDetail } =
       await import('../../purchase_invoice/entity/purchase_invoice_detail.entity.js');
@@ -97,13 +97,30 @@ export class PurchaseOrderRepository extends Repository<PurchaseOrder> {
     const { PurchaseInvoice } =
       await import('../../purchase_invoice/entity/purchase_invoice.entity.js');
 
-    for (const orderDetail of order.details) {
-      // Check if already linked
-      const alreadyLinked = await mgr.count(PurchaseInvoiceDetail, {
-        where: { purchaseOrderDetailId: orderDetail.id },
-      });
+    order.totalLine = order.details?.length || 0;
+    order.totalCloseLine = 0;
 
-      if (alreadyLinked > 0) continue;
+    for (const orderDetail of order.details) {
+      const result = (await mgr
+        .createQueryBuilder(PurchaseInvoiceDetail, 'pid')
+        .innerJoin('pid.purchaseInvoice', 'pi')
+        .select('SUM(pid.quantity)', 'totalInvoiced')
+        .where('pid.purchase_order_detail_id = :detailId', {
+          detailId: orderDetail.id,
+        })
+        .andWhere('pi.isCancel = false')
+        .getRawOne()) as unknown as
+        | { totalInvoiced: string | null }
+        | undefined;
+
+      const totalInvoiced = Number(result?.totalInvoiced || 0);
+
+      if (totalInvoiced >= Number(orderDetail.quantity)) {
+        order.totalCloseLine = (order.totalCloseLine || 0) + 1;
+        continue;
+      }
+
+      const remainingQty = Number(orderDetail.quantity) - totalInvoiced;
 
       // Try to find a match
       const orphanedMatch = await mgr
@@ -113,11 +130,12 @@ export class PurchaseOrderRepository extends Repository<PurchaseOrder> {
         .andWhere('pi.supplierId = :supplierId', {
           supplierId: order.supplierId,
         })
+        .andWhere('pi.isCancel = false')
         .andWhere('pid.productId = :productId', {
           productId: orderDetail.productId,
         })
         .andWhere('pid.quantity = :quantity', {
-          quantity: orderDetail.quantity,
+          quantity: remainingQty,
         })
         .andWhere('pi.createdAt >= :orderDate', { orderDate: order.createdAt })
         .getOne();
@@ -131,20 +149,28 @@ export class PurchaseOrderRepository extends Repository<PurchaseOrder> {
     }
 
     // Determine Status based on payment of linked invoices
-    if (order.totalCloseLine >= order.totalLine) {
-      const linkedInvoices = await mgr
-        .createQueryBuilder(PurchaseInvoice, 'pi')
-        .innerJoin(
-          'purchase_invoice_details',
-          'pid',
-          'pid.purchase_invoice_id = pi.id',
-        )
-        .where('pid.purchase_order_id = :orderId', { orderId: order.id })
-        .getMany();
+    const linkedInvoices = (await mgr
+      .createQueryBuilder(PurchaseInvoice, 'pi')
+      .innerJoin(
+        'purchase_invoice_details',
+        'pid',
+        'pid.purchase_invoice_id = pi.id',
+      )
+      .where('pid.purchase_order_id = :orderId', { orderId: order.id })
+      .andWhere('pi.is_cancel = false')
+      .select(['pi.id', 'pi.status', 'pi.total_price', 'pi.paid_amount'])
+      .distinct(true)
+      .getRawMany()) as unknown as Array<{
+      pi_id: number;
+      pi_status: number;
+      pi_total_price: string;
+      pi_paid_amount: string;
+    }>;
 
+    if (order.totalCloseLine >= order.totalLine) {
       const allPaid =
         linkedInvoices.length > 0 &&
-        linkedInvoices.every((inv) => inv.status === 3); // 3 = InvoiceStatus.COMPLETED
+        linkedInvoices.every((inv) => Number(inv.pi_status) === 3); // 3 = InvoiceStatus.COMPLETED
 
       if (allPaid) {
         order.status = OrderStatus.COMPLETED;

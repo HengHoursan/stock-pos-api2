@@ -228,11 +228,7 @@ export class PurchaseReturnService {
     currentUserId: number | null = null,
   ): Promise<PurchaseReturn> {
     const purchaseReturn = await this.findOne(id);
-    if (purchaseReturn.status === InvoiceStatus.COMPLETED) {
-      throw new BadRequestException(
-        'Cannot cancel a completed purchase return',
-      );
-    }
+    if (purchaseReturn.isCancel) return purchaseReturn;
 
     return await this.dataSource.transaction(async (manager) => {
       purchaseReturn.isCancel = true;
@@ -260,14 +256,20 @@ export class PurchaseReturnService {
     id: number,
     currentUserId: number | null = null,
   ): Promise<void> {
-    const purchaseReturn = await this.findOne(id);
+    let purchaseReturn = await this.findOne(id);
+    if (!purchaseReturn.isCancel) {
+      purchaseReturn = await this.cancel(id, currentUserId);
+    }
     purchaseReturn.deletedBy = currentUserId;
     await this.purchaseReturnRepository.save(purchaseReturn);
     await this.purchaseReturnRepository.softRemove(purchaseReturn);
   }
 
   async forceDelete(id: number): Promise<void> {
-    await this.findOne(id);
+    const purchaseReturn = await this.findOne(id);
+    if (!purchaseReturn.isCancel) {
+      await this.cancel(id, null);
+    }
     await this.dataSource.transaction(async (manager) => {
       await manager.delete(PurchaseReturnDetail, { purchaseReturnId: id });
       await manager.delete(PurchaseReturn, id);

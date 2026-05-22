@@ -96,10 +96,12 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
       // Calculate total invoiced quantity for this order detail
       const result = (await mgr
         .createQueryBuilder(SaleInvoiceDetail, 'sid')
+        .innerJoin('sid.saleInvoice', 'si')
         .select('SUM(sid.quantity)', 'totalInvoiced')
         .where('sid.sale_order_detail_id = :detailId', {
           detailId: orderDetail.id,
         })
+        .andWhere('si.isCancel = false')
         .getRawOne()) as unknown as
         | { totalInvoiced: string | null }
         | undefined;
@@ -127,6 +129,7 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
         .andWhere('si.customerId = :customerId', {
           customerId: order.customerId,
         })
+        .andWhere('si.isCancel = false')
         .andWhere('sid.productId = :productId', {
           productId: orderDetail.productId,
         })
@@ -151,6 +154,7 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
       .createQueryBuilder(SaleInvoice, 'si')
       .innerJoin('sale_invoice_details', 'sid', 'sid.sale_invoice_id = si.id')
       .where('sid.sale_order_id = :orderId', { orderId: order.id })
+      .andWhere('si.is_cancel = false')
       .select(['si.id', 'si.status', 'si.total_price', 'si.paid_amount'])
       .distinct(true)
       .getRawMany()) as unknown as Array<{
@@ -166,8 +170,10 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
     // We get the actual invoiced amount strictly from the details linked to this order
     const invoicedResult = (await mgr
       .createQueryBuilder(SaleInvoiceDetail, 'sid')
+      .innerJoin('sid.saleInvoice', 'si')
       .select('SUM(sid.total_price)', 'totalInvoiced')
       .where('sid.sale_order_id = :orderId', { orderId: order.id })
+      .andWhere('si.isCancel = false')
       .getRawOne()) as unknown as { totalInvoiced: string | null } | undefined;
 
     order.invoicedAmount = Number(invoicedResult?.totalInvoiced || 0);
@@ -180,9 +186,11 @@ export class SaleOrderRepository extends Repository<SaleOrder> {
         // Find how much of THIS invoice belongs to THIS order
         const orderShareResult = (await mgr
           .createQueryBuilder(SaleInvoiceDetail, 'sid')
+          .innerJoin('sid.saleInvoice', 'si')
           .select('SUM(sid.total_price)', 'share')
           .where('sid.sale_invoice_id = :invId', { invId: inv.si_id })
           .andWhere('sid.sale_order_id = :orderId', { orderId: order.id })
+          .andWhere('si.isCancel = false')
           .getRawOne()) as unknown as { share: string | null } | undefined;
 
         const orderShare = Number(orderShareResult?.share || 0);

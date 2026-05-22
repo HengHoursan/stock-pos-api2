@@ -18,8 +18,8 @@ import { PurchaseInvoiceDetail } from '../entity/purchase_invoice_detail.entity'
 import { ProductDetail } from '../../product/entity/product_detail.entity';
 import { Transaction } from '../../transaction/entity/transaction.entity';
 import { PurchaseOrder } from '../../purchase_order/entity/purchase_order.entity';
+import { PurchaseOrderRepository } from '../../purchase_order/repository/purchase_order.repository';
 import { InvoiceStatus } from '@/common/enum/invoice_status.enum';
-import { OrderStatus } from '@/common/enum/order_status.enum';
 import { PaymentMethod } from '@/common/enum/payment_method.enum';
 import { TransactionType } from '@/common/enum/transaction_type.enum';
 import { generateCode, DateConvertor } from '@/common/util/helper';
@@ -28,6 +28,7 @@ import { generateCode, DateConvertor } from '@/common/util/helper';
 export class PurchaseInvoiceService {
   constructor(
     private readonly purchaseInvoiceRepository: PurchaseInvoiceRepository,
+    private readonly purchaseOrderRepository: PurchaseOrderRepository,
     private readonly productRepository: ProductRepository,
     private readonly dataSource: DataSource,
   ) {}
@@ -137,16 +138,13 @@ export class PurchaseInvoiceService {
       for (const orderId of purchaseOrderIds) {
         const order = await manager.findOne(PurchaseOrder, {
           where: { id: orderId },
+          relations: ['details'],
         });
         if (order) {
-          const detailsForOrder = dto.details.filter(
-            (d) => d.purchaseOrderId === orderId,
+          await this.purchaseOrderRepository.autoHealFulfillment(
+            order,
+            manager,
           );
-          order.totalCloseLine =
-            (order.totalCloseLine || 0) + detailsForOrder.length;
-          // Status updates are now handled by PurchasePaymentService when fully paid.
-          order.updatedBy = currentUserId;
-          await manager.save(PurchaseOrder, order);
         }
       }
 
@@ -168,6 +166,11 @@ export class PurchaseInvoiceService {
     const { page, limit, sortBy, sortOrder } = pagination;
     const [data, total] =
       await this.purchaseInvoiceRepository.findAllWithPagination(pagination);
+
+    for (const invoice of data) {
+      await this.purchaseInvoiceRepository.autoHealStatus(invoice);
+    }
+
     const meta = new PaginationMeta(page, limit, total, sortBy, sortOrder);
     return [data, meta];
   }
@@ -192,6 +195,9 @@ export class PurchaseInvoiceService {
     if (!invoice) {
       throw new NotFoundException(`Purchase Invoice with id ${id} not found`);
     }
+
+    await this.purchaseInvoiceRepository.autoHealStatus(invoice);
+
     return invoice;
   }
 
@@ -363,11 +369,7 @@ export class PurchaseInvoiceService {
     currentUserId: number | null = null,
   ): Promise<PurchaseInvoice> {
     const invoice = await this.findOne(id);
-    if (invoice.status === InvoiceStatus.COMPLETED) {
-      throw new BadRequestException(
-        'Cannot cancel a completed purchase invoice',
-      );
-    }
+    if (invoice.isCancel) return invoice;
 
     return await this.dataSource.transaction(async (manager) => {
       invoice.isCancel = true;
@@ -421,22 +423,13 @@ export class PurchaseInvoiceService {
       for (const orderId of purchaseOrderIds) {
         const order = await manager.findOne(PurchaseOrder, {
           where: { id: orderId },
+          relations: ['details'],
         });
         if (order) {
-          const detailsForOrder = invoice.details.filter(
-            (d) => d.purchaseOrderId === orderId,
+          await this.purchaseOrderRepository.autoHealFulfillment(
+            order,
+            manager,
           );
-          order.totalCloseLine = Math.max(
-            0,
-            (order.totalCloseLine || 0) - detailsForOrder.length,
-          );
-          if (order.totalCloseLine === 0) {
-            order.status = OrderStatus.PENDING;
-          } else if (order.totalCloseLine < order.totalLine) {
-            order.status = OrderStatus.PARTIAL;
-          }
-          order.updatedBy = currentUserId;
-          await manager.save(PurchaseOrder, order);
         }
       }
 
@@ -449,7 +442,10 @@ export class PurchaseInvoiceService {
     id: number,
     currentUserId: number | null = null,
   ): Promise<void> {
-    const invoice = await this.findOne(id);
+    let invoice = await this.findOne(id);
+    if (!invoice.isCancel) {
+      invoice = await this.cancel(id, currentUserId);
+    }
     invoice.deletedBy = currentUserId;
     await this.purchaseInvoiceRepository.save(invoice);
     await this.purchaseInvoiceRepository.softRemove(invoice);
@@ -457,6 +453,9 @@ export class PurchaseInvoiceService {
 
   async forceDelete(id: number): Promise<void> {
     const invoice = await this.findOne(id);
+    if (!invoice.isCancel) {
+      await this.cancel(id, null);
+    }
     await this.dataSource.transaction(async (manager) => {
       await manager.delete(PurchaseInvoiceDetail, { purchaseInvoiceId: id });
       await manager.delete(PurchaseInvoice, id);
