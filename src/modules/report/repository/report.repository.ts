@@ -13,6 +13,7 @@ import { SaleInvoice } from '@/sale_invoice/entity/sale_invoice.entity';
 import { PurchaseInvoice } from '@/purchase_invoice/entity/purchase_invoice.entity';
 import { InvoiceStatus } from '@/common/enum/invoice_status.enum';
 import { PaginationRequest, PaginationResponse } from '@/common/dto';
+import { User } from '@/user/entity/user.entity';
 
 @Injectable()
 export class ReportRepository {
@@ -104,6 +105,14 @@ export class ReportRepository {
         endDate: query.filter.endDate,
       });
     }
+    if (query.filter?.createdBy) {
+      revenueQb.andWhere('invoice.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
+      });
+      returnsQb.andWhere('returns.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
+      });
+    }
 
     const revenueResult = await revenueQb.getRawOne();
     const returnsResult = await returnsQb.getRawOne();
@@ -112,14 +121,31 @@ export class ReportRepository {
     const returnsCount = parseFloat(returnsResult?.totalReturns || '0');
     const netSales = revenue - returnsCount;
 
-    const salesByPaymentMethod = await this.saleInvoiceRepo
+    const salesByPaymentMethodQb = this.saleInvoiceRepo
       .createQueryBuilder('invoice')
       .select('invoice.paymentMethod', 'paymentMethod')
       .addSelect('SUM(invoice.totalPrice)', 'total')
       .where('invoice.status IN (:...statuses)', { statuses })
       .andWhere('invoice.isCancel = :isCancel', { isCancel: false })
-      .groupBy('invoice.paymentMethod')
-      .getRawMany();
+      .groupBy('invoice.paymentMethod');
+
+    if (query.filter?.startDate) {
+      salesByPaymentMethodQb.andWhere('invoice.invoiceDate >= :startDate', {
+        startDate: query.filter.startDate,
+      });
+    }
+    if (query.filter?.endDate) {
+      salesByPaymentMethodQb.andWhere('invoice.invoiceDate <= :endDate', {
+        endDate: query.filter.endDate,
+      });
+    }
+    if (query.filter?.createdBy) {
+      salesByPaymentMethodQb.andWhere('invoice.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
+      });
+    }
+
+    const salesByPaymentMethod = await salesByPaymentMethodQb.getRawMany();
 
     const salesByCustomerQb = this.saleInvoiceRepo
       .createQueryBuilder('invoice')
@@ -152,6 +178,41 @@ export class ReportRepository {
       salesByCustomerQb.andWhere('invoice.invoiceDate <= :endDate', {
         endDate: query.filter.endDate,
       });
+    if (query.filter?.createdBy) {
+      salesByCustomerQb.andWhere('invoice.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
+      });
+    }
+
+    const salesByCashierQb = this.saleInvoiceRepo
+      .createQueryBuilder('invoice')
+      .leftJoin(User, 'user', 'user.id = invoice.createdBy')
+      .select('user.username', 'cashierName')
+      .addSelect('SUM(invoice.totalPrice)', 'totalRevenue')
+      .addSelect('COUNT(invoice.id)', 'totalInvoices')
+      .where('invoice.status IN (:...statuses)', { statuses })
+      .andWhere('invoice.isCancel = :isCancel', { isCancel: false })
+      .groupBy('invoice.createdBy')
+      .addGroupBy('user.username')
+      .orderBy('SUM(invoice.totalPrice)', 'DESC');
+
+    if (query.filter?.startDate) {
+      salesByCashierQb.andWhere('invoice.invoiceDate >= :startDate', {
+        startDate: query.filter.startDate,
+      });
+    }
+    if (query.filter?.endDate) {
+      salesByCashierQb.andWhere('invoice.invoiceDate <= :endDate', {
+        endDate: query.filter.endDate,
+      });
+    }
+    if (query.filter?.createdBy) {
+      salesByCashierQb.andWhere('invoice.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
+      });
+    }
+
+    const salesByCashier = await salesByCashierQb.getRawMany();
 
     const totalCount = await salesByCustomerQb
       .clone()
@@ -182,6 +243,11 @@ export class ReportRepository {
         query.sortBy,
         query.sortOrder,
       ),
+      salesByCashier: salesByCashier.map((c) => ({
+        cashierName: c.cashierName || 'Unknown Cashier',
+        totalRevenue: parseFloat(c.totalRevenue),
+        totalInvoices: parseInt(c.totalInvoices),
+      })),
     };
   }
 
@@ -205,6 +271,11 @@ export class ReportRepository {
       expensesQb.andWhere('invoice.invoiceDate <= :endDate', {
         endDate: query.filter.endDate,
       });
+    if (query.filter?.createdBy) {
+      expensesQb.andWhere('invoice.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
+      });
+    }
 
     const expensesResult = await expensesQb.getRawOne();
     const expenses = parseFloat(expensesResult?.totalExpenses || '0');
@@ -237,6 +308,11 @@ export class ReportRepository {
       purchasesBySupplierQb.andWhere('invoice.invoiceDate <= :endDate', {
         endDate: query.filter.endDate,
       });
+    if (query.filter?.createdBy) {
+      purchasesBySupplierQb.andWhere('invoice.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
+      });
+    }
 
     const countResult = await purchasesBySupplierQb
       .clone()
@@ -323,6 +399,20 @@ export class ReportRepository {
       });
       expensesQb.andWhere('invoice.invoiceDate <= :endDate', {
         endDate: query.filter.endDate,
+      });
+    }
+    if (query.filter?.createdBy) {
+      revenueQb.andWhere('invoice.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
+      });
+      returnsQb.andWhere('returns.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
+      });
+      cogsQb.andWhere('invoice.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
+      });
+      expensesQb.andWhere('invoice.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
       });
     }
 
@@ -474,6 +564,14 @@ export class ReportRepository {
       });
       topCustomersQb.andWhere('invoice.invoiceDate <= :endDate', {
         endDate: query.filter.endDate,
+      });
+    }
+    if (query.filter?.createdBy) {
+      bestSellingQb.andWhere('invoice.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
+      });
+      topCustomersQb.andWhere('invoice.createdBy = :createdBy', {
+        createdBy: query.filter.createdBy,
       });
     }
 

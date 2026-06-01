@@ -23,6 +23,17 @@ class SalesByCustomerDataResponse {
   totalInvoices: number;
 }
 
+class SalesByCashierDataResponse {
+  @Expose()
+  cashierName: string;
+
+  @Expose()
+  totalRevenue: number;
+
+  @Expose()
+  totalInvoices: number;
+}
+
 export class SalesReportResponse {
   @Expose()
   totalRevenue: number;
@@ -40,4 +51,8 @@ export class SalesReportResponse {
   @Expose()
   @Type(() => PaginationResponse)
   salesByCustomer: PaginationResponse<SalesByCustomerDataResponse>;
+
+  @Expose()
+  @Type(() => SalesByCashierDataResponse)
+  salesByCashier: SalesByCashierDataResponse[];
 }
